@@ -5,7 +5,11 @@ const Token = artifacts.require('tokens/eip20/EIP20.sol');
 const fs = require('fs');
 
 module.exports = (deployer, network) => {
-  const config = JSON.parse(fs.readFileSync('./conf/config.json'));
+  let config = JSON.parse(fs.readFileSync('./conf/config.json'));
+
+  if (network === 'ganache' || network === 'rinkeby') {
+    config = JSON.parse(fs.readFileSync(`./conf/${process.argv[5]}.json`));
+  }
 
   async function giveTokensTo(tokenHolders) {
     if (tokenHolders.length === 0) { return; }

@@ -21,7 +21,10 @@ module.exports = (deployer, network, accounts) => {
   deployer.link(AttributeStore, PLCRVoting);
 
   return deployer.then(async () => {
-    const config = JSON.parse(fs.readFileSync('./conf/config.json'));
+    let config = JSON.parse(fs.readFileSync('./conf/config.json'));
+    if (network === 'ganache' || network === 'rinkeby') {
+      config = JSON.parse(fs.readFileSync(`./conf/${process.argv[5]}.json`));
+    }
     let tokenAddress = config.token.address;
 
     if (config.token.deployToken) {

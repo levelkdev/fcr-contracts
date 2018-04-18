@@ -6,3 +6,5 @@ secrets.json
 installed_contracts/
 coverage/
 coverage.json
+
+conf/

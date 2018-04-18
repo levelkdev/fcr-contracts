@@ -22,7 +22,10 @@ module.exports = (deployer, network, accounts) => {
   deployer.link(AttributeStore, Parameterizer);
 
   return deployer.then(async () => {
-    const config = JSON.parse(fs.readFileSync('./conf/config.json'));
+    let config = JSON.parse(fs.readFileSync('./conf/config.json'));
+    if (network === 'ganache' || network === 'rinkeby') {
+      config = JSON.parse(fs.readFileSync(`./conf/${process.argv[5]}.json`));
+    }
     const parameterizerConfig = config.paramDefaults;
     let tokenAddress = config.token.address;
 
