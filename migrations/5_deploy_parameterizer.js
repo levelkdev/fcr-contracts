@@ -24,7 +24,7 @@ module.exports = (deployer, network, accounts) => {
   return deployer.then(async () => {
     let config = JSON.parse(fs.readFileSync('./conf/config.json'));
     if (network === 'ganache' || network === 'rinkeby') {
-      config = JSON.parse(fs.readFileSync(`./conf/${process.argv[5]}.json`));
+      config = JSON.parse(fs.readFileSync(`./conf/config.json`));
     }
     const parameterizerConfig = config.paramDefaults;
     let tokenAddress = config.token.address;

@@ -5,6 +5,11 @@ const mnemonic = process.env.MNEMONIC || '';
 
 module.exports = {
   networks: {
+    development: {
+      host: 'localhost',
+      network_id: '*',
+      port: 8545
+    } ,
     mainnet: {
       provider: new HDWalletProvider(mnemonic, 'https://mainnet.infura.io'),
       network_id: '1',
@@ -12,8 +17,9 @@ module.exports = {
       gasPrice: 10000000000,
     },
     ganache: {
-      provider: new HDWalletProvider(mnemonic, 'http://localhost:8545'),
+      host: 'localhost',
       network_id: '*',
+      port: 8545,
       gas: 4500000,
       gasPrice: 25000000000,
     },

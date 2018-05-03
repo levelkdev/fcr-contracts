@@ -8,7 +8,7 @@ module.exports = (deployer, network) => {
   let config = JSON.parse(fs.readFileSync('./conf/config.json'));
 
   if (network === 'ganache' || network === 'rinkeby') {
-    config = JSON.parse(fs.readFileSync(`./conf/${process.argv[5]}.json`));
+    config = JSON.parse(fs.readFileSync(`./conf/config.json`));
   }
 
   async function giveTokensTo(tokenHolders) {
