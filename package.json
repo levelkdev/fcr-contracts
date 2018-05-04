@@ -2,9 +2,11 @@
   "name": "sol-tcr",
   "version": "0.0.1",
   "description": "A generic, string-keyed TCR in Solidity",
+  "main": "lib/index.js",
   "scripts": {
     "install": "truffle install",
     "compile": "truffle compile",
+    "build": "node scripts/build.js",
     "coverage": "solidity-coverage",
     "deploy-rinkeby": "truffle migrate --network rinkeby",
     "deploy-ganache": "truffle migrate --network ganache",
