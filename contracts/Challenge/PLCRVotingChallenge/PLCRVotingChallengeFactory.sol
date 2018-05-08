@@ -1,7 +1,7 @@
 pragma solidity ^0.4.8;
 
-import "../Parameterizer.sol";
-import "./ChallengeFactoryInterface.sol";
+import "../../Parameterizer.sol";
+import "../ChallengeFactoryInterface.sol";
 import "./PLCRVotingChallenge.sol";
 
 contract PLCRVotingChallengeFactory is ChallengeFactoryInterface {
