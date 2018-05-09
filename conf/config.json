@@ -22,15 +22,14 @@
     "symbol": "TEST",
     "supply": "1000000000000000000000000000",
     "tokenHolders": [
-      { "address": "0x627306090abaB3A6e1400e9345bC60c78a8BEf57",
+      { "address": "0xdf08f82de32b8d460adbe8d72043e3a7e25a3b39",
         "amount": "250000000000000000000000000" },
-      { "address": "0xf17f52151EbEF6C7334FAD080c5704D77216b732",
+      { "address": "0x6704fbfcd5ef766b287262fa2281c105d57246a6",
         "amount": "250000000000000000000000000" },
-      { "address": "0xC5fdf4076b8F3A5357c5E395ab970B5B54098Fef",
+      { "address": "0x9e1ef1ec212f5dffb41d35d9e5c14054f26c6560",
         "amount": "250000000000000000000000000" },
-      { "address": "0x821aEa9a577a9b44299B9c15c88cf3087F3b5544",
+      { "address": "0xce42bdb34189a93c55de250e011c68faee374dd3",
         "amount": "250000000000000000000000000" }
     ]
   }
 }
-
