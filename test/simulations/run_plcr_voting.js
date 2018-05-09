@@ -20,7 +20,7 @@ contract('simulate TCR apply/challenge/resolve', (accounts) => {
       console.log('')
 
       /* change this to make the challenge pass or fail */
-      const makeChallengePass = true
+      const makeChallengePass = false
 
       let numVotesFor, numVotesAgainst
 
