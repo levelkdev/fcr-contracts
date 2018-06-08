@@ -10,7 +10,7 @@
     "deploy-rinkeby": "truffle migrate --network rinkeby",
     "deploy-ganache": "truffle migrate --network ganache",
     "deploy-mainnet": "truffle migrate --network mainnet",
-    "test": "npm run lint ./ && truffle test",
+    "test": "truffle test",
     "fix": "eslint --fix",
     "lint": "eslint"
   },

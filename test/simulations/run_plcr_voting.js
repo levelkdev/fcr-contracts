@@ -3,6 +3,7 @@
 const Parameterizer = artifacts.require('./Parameterizer.sol')
 const Registry = artifacts.require('Registry.sol')
 const Token = artifacts.require('EIP20.sol')
+const PLCRVoting = artifacts.require('PLCRVoting')
 
 const fs = require('fs')
 const BN = require('bignumber.js')
@@ -16,7 +17,7 @@ contract('simulate TCR apply/challenge/resolve', (accounts) => {
   describe('do it...', () => {
     const [_, applicant, challenger, voterFor, voterAgainst] = accounts
 
-    it('...', async () => {
+    it.only('...', async () => {
       console.log('')
 
       /* change this to make the challenge pass or fail */
@@ -26,19 +27,19 @@ contract('simulate TCR apply/challenge/resolve', (accounts) => {
 
       if (makeChallengePass) {
         /* votes against proposal exceed votes for: challenge passes */
-        numVotesFor = 10
-        numVotesAgainst = 20
+        numVotesFor = 10 * 10**18
+        numVotesAgainst = 20 * 10**18
       } else {
         /* votes for proposal exceed votes against: challenge fails */
-        numVotesFor = 20
-        numVotesAgainst = 10
+        numVotesFor = 20 * 10**18
+        numVotesAgainst = 10 * 10**18
       }
 
       const registry = await Registry.deployed()
 
       const token = Token.at(await registry.token.call());
       const listingHash = utils.getListingHash('nochallenge.net')
-
+      const voting = await PLCRVoting.deployed()
       await logBalances(accounts, token)
 
       console.log(`*** apply with listingHash=${listingHash}`)
@@ -50,6 +51,7 @@ contract('simulate TCR apply/challenge/resolve', (accounts) => {
       const receipt = await utils.as(challenger, registry.createChallenge, listingHash, '')
       const { challengeID } = receipt.logs[0].args
       const plcrChallenge = await utils.getPLCRChallenge(challengeID)
+      const pollID = await plcrChallenge.pollID()
       console.log(`*** challenge #${challengeID} created`)
       console.log('')
 
@@ -63,14 +65,14 @@ contract('simulate TCR apply/challenge/resolve', (accounts) => {
 
       console.log('*** commit votes')
       console.log('')
-      await utils.commitVote(challengeID, 1, numVotesFor, 420, voterFor)
-      await utils.commitVote(challengeID, 0, numVotesAgainst, 420, voterAgainst)
+      await utils.commitVote(pollID, 1, numVotesFor, 420, voterFor)
+      await utils.commitVote(pollID, 0, numVotesAgainst, 420, voterAgainst)
       await utils.increaseTime(paramConfig.commitStageLength + 1)
 
       console.log('*** reveal votes')
       console.log('')
-      await plcrChallenge.revealVote(1, 420, { from: voterFor })
-      await plcrChallenge.revealVote(0, 420, { from: voterAgainst })
+      await voting.revealVote(pollID, 1, 420, { from: voterFor })
+      await voting.revealVote(pollID, 0, 420, { from: voterAgainst })
       await utils.increaseTime(paramConfig.revealStageLength)
       await logBalances(accounts, token, plcrChallenge)
       await logChallengeReward(challengeID)
@@ -95,8 +97,8 @@ contract('simulate TCR apply/challenge/resolve', (accounts) => {
 
       console.log('*** voters withdraw tokens from PLCR')
       console.log('')
-      await plcrChallenge.withdrawVotingRights({ from: voterFor })
-      await plcrChallenge.withdrawVotingRights({ from: voterAgainst })
+      await voting.withdrawVotingRights(numVotesFor, { from: voterFor })
+      await voting.withdrawVotingRights(numVotesAgainst, { from: voterAgainst })
       await logBalances(accounts, token, plcrChallenge)
       await logListingInfo(listingHash)
 
@@ -115,7 +117,7 @@ async function logBalances(accounts, token, plcrChallenge) {
   const [_, applicant, challenger, voterFor, voterAgainst] = accounts
   const applicantBalance = (await token.balanceOf.call(applicant)).toNumber()
   const challengerBalance = (await token.balanceOf.call(challenger)).toNumber()
-  const voterForBalance = (await token.balanceOf.call(voterFor)).toNumber()
+  const voterForBalance = (await token.balanceOf.call(voterFor)).toNumber()/(10**18)
   const voterAgainstBalance = (await token.balanceOf.call(voterAgainst)).toNumber()
   const registryBalance = (await token.balanceOf.call(registry.address)).toNumber()
   console.log('balances:')

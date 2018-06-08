@@ -7,10 +7,10 @@ const EthRPC = require('ethjs-rpc');
 const abi = require('ethereumjs-abi');
 const fs = require('fs');
 
-const ethRPC = new EthRPC(new HttpProvider('http://localhost:8545'));
-const ethQuery = new Eth(new HttpProvider('http://localhost:8545'));
+const ethRPC = new EthRPC(new HttpProvider('http://localhost:7545'));
+const ethQuery = new Eth(new HttpProvider('http://localhost:7545'));
 
-// const PLCRVoting = artifacts.require('PLCRVoting.sol');
+const PLCRVoting = artifacts.require('PLCRVoting.sol');
 const PLCRVotingChallenge = artifacts.require('PLCRVotingChallenge.sol');
 const Parameterizer = artifacts.require('Parameterizer.sol');
 const Registry = artifacts.require('Registry.sol');
@@ -173,13 +173,15 @@ const utils = {
     return PLCRVotingChallenge.at(plcrChallengeAddress)
   },
 
-  commitVote: async (challengeID, voteOption, numTokens, salt, voter) => {
+  commitVote: async (pollID, voteOption, numTokens, salt, voter) => {
+    // const plcrChallenge = await utils.getPLCRChallenge(challengeID)
     const token = await Token.deployed();
-    const plcrChallenge = await utils.getPLCRChallenge(challengeID)
-    await utils.as(voter, token.approve, plcrChallenge.address, numTokens)
+    const voting = await PLCRVoting.deployed()
+    const prevPollID = await voting.getInsertPointForNumTokens.call(voter, numTokens, pollID);
+    await utils.as(voter, token.approve, voting.address, numTokens)
     const hash = utils.getVoteSaltHash(voteOption, salt)
-    await utils.as(voter, plcrChallenge.requestVotingRights, numTokens)
-    await utils.as(voter, plcrChallenge.commitVote, hash, numTokens)
+    await utils.as(voter, voting.requestVotingRights, numTokens)
+    await utils.as(voter, voting.commitVote, pollID, hash, numTokens, prevPollID)
   },
 
   getReceiptValue: (receipt, arg) => receipt.logs[0].args[arg],

@@ -1,10 +1,11 @@
 pragma solidity ^0.4.8;
+import "../Parameterizer.sol";
 import "tokens/eip20/EIP20Interface.sol";
 import "dll/DLL.sol";
 import "attrstore/AttributeStore.sol";
 import "zeppelin/math/SafeMath.sol";
+import "plcrvoting/PLCRVoting.sol";
 import "./ChallengeInterface.sol";
-
 /**
 @title Partial-Lock-Commit-Reveal Voting scheme with ERC20 tokens
 @author Team: Aspyn Palatnick, Cem Ozer, Yorke Rhodes
@@ -36,6 +37,8 @@ contract PLCRVotingChallenge is ChallengeInterface {
 
     address public challenger;     /// the address of the challenger
     address public listingOwner;      /// the address of the listingOwner
+    PLCRVoting public voting;      /// address of PLCRVoting Contract
+    uint public pollID;             /// pollID of PLCRVoting
     bool public isStarted;         /// true if challenger has executed start()
 
     uint public commitEndDate;     /// expiration date of commit period for poll
@@ -79,43 +82,29 @@ contract PLCRVotingChallenge is ChallengeInterface {
     /**
     @dev Initializes voteQuorum, commitDuration, revealDuration, and pollNonce in addition to token contract and trusted mapping
     @param _tokenAddr The address where the ERC20 token contract is deployed
-    @param _commitStageLen Length of the commit stage
-    @param _revealStageLen Length of the reveal stage
-    @param _voteQuorum Percentage of votes needed to win (0 - 100)
-    @param _rewardPool Pool of tokens to be distributed to winning voters
-    @param _stake Number of tokens at stake for either party during challenge
     */
-    function PLCRVotingChallenge(address _challenger, address _listingOwner, address _tokenAddr, uint _commitStageLen, uint _revealStageLen, uint _voteQuorum, uint _rewardPool, uint _stake) public {
+    function PLCRVotingChallenge(address _challenger, address _listingOwner, address _tokenAddr, PLCRVoting _voting, Parameterizer _parameterizer) public {
         challenger = _challenger;
         listingOwner = _listingOwner;
 
         token = EIP20Interface(_tokenAddr);
+        voting = _voting;
 
-        commitStageLen = _commitStageLen;
-        revealStageLen = _revealStageLen;
-
-        voteQuorum = _voteQuorum;
-        rewardPool = _rewardPool;
-        stake = _stake;
+        commitStageLen = _parameterizer.get("commitStageLen");
+        revealStageLen = _parameterizer.get("revealStageLen");
+        voteQuorum     = _parameterizer.get("voteQuorum");
+        stake          = _parameterizer.get("minDeposit");
+        rewardPool     = ((100 - _parameterizer.get("dispensationPct")) * stake) / 100;
+        pollID = voting.startPoll(
+                   voteQuorum,
+                   commitStageLen,
+                   revealStageLen
+                 );
     }
 
     // ================
     // TOKEN INTERFACE:
     // ================
-
-    /**
-    @notice Loads _numTokens ERC20 tokens into the voting contract for one-to-one voting rights
-    @dev Assumes that msg.sender has approved voting contract to spend on their behalf
-    @param _numTokens The number of votingTokens desired in exchange for ERC20 tokens
-    */
-    function requestVotingRights(uint _numTokens) external {
-        require(started() && !ended());
-        require(token.balanceOf(msg.sender) >= _numTokens);
-        voteTokenBalance[msg.sender] += _numTokens;
-        require(token.transferFrom(msg.sender, this, _numTokens));
-        _VotingRightsGranted(_numTokens);
-    }
-
     function start() public onlyChallenger {
         require(token.transferFrom(challenger, this, stake));
 
@@ -125,64 +114,9 @@ contract PLCRVotingChallenge is ChallengeInterface {
         isStarted = true;
     }
 
-    /**
-    @notice Withdraw _numTokens ERC20 tokens from the voting contract, revoking these voting rights
-    */
-    function withdrawVotingRights() external {
-        require(ended());
-        require(voteTokenBalance[msg.sender] > 0);
-        require(token.transfer(msg.sender, voteTokenBalance[msg.sender]));
-        voteTokenBalance[msg.sender] = 0;
-        _VotingRightsWithdrawn(voteTokenBalance[msg.sender]);
-    }
-
     // =================
     // VOTING INTERFACE:
     // =================
-
-    /**
-    @notice Commits vote using hash of choice and secret salt to conceal vote until reveal
-    @param _secretHash Commit keccak256 hash of voter's choice and salt (tightly packed in this order)
-    @param _numTokens The number of tokens to be committed towards the target poll
-    */
-    function commitVote(bytes32 _secretHash, uint _numTokens) external {
-        require(started());
-        require(commitPeriodActive());
-        require(voteTokenBalance[msg.sender] >= _numTokens); // prevent user from overspending
-
-        bytes32 UUID = attrUUID(msg.sender);
-
-        store.setAttribute(UUID, "numTokens", _numTokens);
-        store.setAttribute(UUID, "commitHash", uint(_secretHash));
-
-        didCommit[msg.sender] = true;
-        _VoteCommitted(UUID, msg.sender, _numTokens);
-    }
-
-    /**
-    @notice Reveals vote with choice and secret salt used in generating commitHash to attribute committed tokens
-    @param _voteOption Vote choice used to generate commitHash
-    @param _salt Secret number used to generate commitHash
-    */
-    function revealVote(uint _voteOption, uint _salt) external {
-        require(started());
-        require(revealPeriodActive());
-        require(didCommit[msg.sender]);    // make sure user has committed a vote
-        require(!didReveal[msg.sender]);   // prevent user from revealing multiple times
-        require(keccak256(_voteOption, _salt) == getCommitHash(msg.sender)); // compare resultant hash from inputs to original commitHash
-
-        uint numTokens = getNumTokens(msg.sender);
-
-        if (_voteOption == 1) { // apply numTokens to appropriate poll choice
-            votesFor += numTokens;
-        } else {
-            votesAgainst += numTokens;
-        }
-
-        didReveal[msg.sender] = true;
-
-        _VoteRevealed(msg.sender, numTokens, votesFor, votesAgainst);
-    }
 
     /**
     @dev                Called by a voter to claim their reward for each completed vote
@@ -192,7 +126,7 @@ contract PLCRVotingChallenge is ChallengeInterface {
         // Ensures the voter has not already claimed tokens
         require(tokenClaims[msg.sender] == false);
 
-        uint voterTokens = getNumWinningTokens(msg.sender, _salt);
+        uint voterTokens = voting.getNumPassingTokens(msg.sender,pollID, _salt);
         uint reward = voterReward(msg.sender, _salt);
 
         voterTokensClaimed += voterTokens;
@@ -220,24 +154,6 @@ contract PLCRVotingChallenge is ChallengeInterface {
         // TODO event
     }
 
-    /**
-    @param _voter The address of the voter
-    @param _salt Arbitrarily chosen integer used to generate secretHash
-    @return correctVotes Number of tokens voted for winning option
-    */
-    function getNumWinningTokens(address _voter, uint _salt) public constant returns (uint correctVotes) {
-        require(ended());
-        require(didReveal[_voter]);
-
-        uint winningChoice = passed() ? 0 : 1;
-        bytes32 winnerHash = keccak256(winningChoice, _salt);
-        bytes32 commitHash = getCommitHash(_voter);
-
-        require(winnerHash == commitHash);
-
-        return getNumTokens(_voter);
-    }
-
     // ==================
     // CHALLENGE INTERFACE:
     // ==================
@@ -260,7 +176,7 @@ contract PLCRVotingChallenge is ChallengeInterface {
     */
     function voterReward(address _voter, uint _salt)
     public view returns (uint) {
-        uint voterTokens = getNumWinningTokens(_voter, _salt);
+        uint voterTokens = voting.getNumPassingTokens(_voter, pollID, _salt);
         uint remainingRewardPool = rewardPool - voterRewardsClaimed;
         uint remainingTotalTokens = getTotalNumberOfTokensForWinningOption() - voterTokensClaimed;
         return (voterTokens * remainingRewardPool) / remainingTotalTokens;
@@ -312,75 +228,6 @@ contract PLCRVotingChallenge is ChallengeInterface {
     @return Boolean indication if challenge is ended
     */
     function ended() view public returns (bool) {
-      return isExpired(revealEndDate);
-    }
-
-    /**
-    @notice Checks if the commit period is still active
-    @dev Checks isExpired for the commitEndDate
-    @return Boolean indication if commit period is active
-    */
-    function commitPeriodActive() constant public returns (bool active) {
-        return !isExpired(commitEndDate);
-    }
-
-    /**
-    @notice Checks if the reveal period is still active
-    @dev Checks isExpired for the revealEndDate
-    */
-    function revealPeriodActive() constant public returns (bool active) {
-        return !isExpired(revealEndDate) && !commitPeriodActive();
-    }
-
-    // ---------------------------
-    // DOUBLE-LINKED-LIST HELPERS:
-    // ---------------------------
-
-    /**
-    @dev Gets the bytes32 commitHash property
-    @param _voter Address of user to check against
-    @return Bytes32 hash property
-    */
-    function getCommitHash(address _voter) constant public returns (bytes32 commitHash) {
-        return bytes32(store.getAttribute(attrUUID(_voter), "commitHash"));
-    }
-
-    /**
-    @dev Wrapper for getAttribute with attrName="numTokens"
-    @param _voter Address of user to check against
-    @return Number of tokens committed
-    */
-    function getNumTokens(address _voter) constant public returns (uint numTokens) {
-        return store.getAttribute(attrUUID(_voter), "numTokens");
-    }
-
-    /**
-    @dev Gets the numTokens property of getLastNode
-    @param _voter Address of user to check against
-    @return Maximum number of tokens committed in poll specified
-    */
-    function getLockedTokens(address _voter) constant public returns (uint numTokens) {
-        return getNumTokens(_voter);
-    }
-
-    // ----------------
-    // GENERAL HELPERS:
-    // ----------------
-
-    /**
-    @dev Checks if an expiration date has been reached
-    @param _terminationDate Integer timestamp of date to compare current timestamp with
-    @return expired Boolean indication of whether the terminationDate has passed
-    */
-    function isExpired(uint _terminationDate) constant public returns (bool expired) {
-        return (block.timestamp > _terminationDate);
-    }
-
-    /**
-    @dev Generates an identifier which associates a user and a poll together
-    @return UUID Hash which is deterministic from _user
-    */
-    function attrUUID(address _user) public pure returns (bytes32 UUID) {
-        return keccak256(_user);
+      return voting.isExpired(revealEndDate);
     }
 }
