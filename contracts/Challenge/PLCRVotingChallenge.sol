@@ -36,17 +36,17 @@ contract PLCRVotingChallenge is ChallengeInterface {
     // ============
 
     address public challenger;     /// the address of the challenger
-    address public listingOwner;      /// the address of the listingOwner
+    address public listingOwner;   /// the address of the listingOwner
     PLCRVoting public voting;      /// address of PLCRVoting Contract
-    uint public pollID;             /// pollID of PLCRVoting
+    uint public pollID;            /// pollID of PLCRVoting
     bool public isStarted;         /// true if challenger has executed start()
-
+    bool challengeResolved;        /// true is challenge has officially been resolved to passed or failed
     uint public commitEndDate;     /// expiration date of commit period for poll
     uint public revealEndDate;     /// expiration date of reveal period for poll
-    uint public voteQuorum;	    /// number of votes required for a proposal to pass
+    uint public voteQuorum;	       /// number of votes required for a proposal to pass
     uint public rewardPool;        /// pool of tokens to be distributed to winning voters
     uint public stake;             /// number of tokens at stake for either party during challenge
-    uint public votesFor;		    /// tally of votes supporting proposal
+    uint public votesFor;		       /// tally of votes supporting proposal
     uint public votesAgainst;      /// tally of votes countering proposal
 
     bool public winnerRewardTransferred;
@@ -126,7 +126,7 @@ contract PLCRVotingChallenge is ChallengeInterface {
         // Ensures the voter has not already claimed tokens
         require(tokenClaims[msg.sender] == false);
 
-        uint voterTokens = voting.getNumPassingTokens(msg.sender,pollID, _salt);
+        uint voterTokens = voting.getNumPassingTokens(msg.sender, pollID, _salt);
         uint reward = voterReward(msg.sender, _salt);
 
         voterTokensClaimed += voterTokens;
@@ -159,12 +159,21 @@ contract PLCRVotingChallenge is ChallengeInterface {
     // ==================
 
     /**
+    @notice Signal from Registry that Challenge has Passed
+    @dev Signals that challenge has officially been resolved on the registry
+    */
+    function resolveChallenge() public {
+      challengeResolved = true;
+    }
+
+
+
+    /**
     @notice Determines if the challenge has passed
     @dev Check if votesAgainst out of totalVotes exceeds votesQuorum (requires ended)
     */
     function passed() public view returns (bool) {
         require(ended());
-
         return (100 * votesAgainst) > (voteQuorum * (votesFor + votesAgainst));
     }
 
@@ -196,10 +205,6 @@ contract PLCRVotingChallenge is ChallengeInterface {
         return (2 * stake) - rewardPool;
     }
 
-    function tokenLockAmount() public view returns (uint) {
-        return stake;
-    }
-
     function started() public view returns (bool) {
         return isStarted;
     }
@@ -224,10 +229,20 @@ contract PLCRVotingChallenge is ChallengeInterface {
 
     /**
     @notice Checks if a challenge is ended
-    @dev Checks isExpired for the revealEndDate
+    @dev Checks pollEnded for the pollID
     @return Boolean indication if challenge is ended
     */
     function ended() view public returns (bool) {
-      return voting.isExpired(revealEndDate);
+      return voting.pollEnded(pollID);
+    }
+
+
+    /**
+    @notice Checks if a challenge is resolved
+    @dev Checks whether challenge outome has been resolved to either passed or failed
+    @return Boolean indication if challenge is resolved
+    */
+    function resolved() view public returns (bool) {
+      return challengeResolved;
     }
 }

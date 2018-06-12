@@ -182,7 +182,8 @@ contract Registry {
 
         require(token.transferFrom(msg.sender, this, deposit));
         challengeNonce = challengeNonce + 1;
-        challenges[challengeNonce] = challengeFactory.createChallenge(msg.sender, listing.owner);
+        ChallengeInterface challengeAddress = challengeFactory.createChallenge(msg.sender, listing.owner);
+        challenges[challengeNonce].challengeAddress = challengeAddress;
         require(token.transfer(challenges[challengeNonce], deposit));
         listing.challengeID = challengeNonce;
         listing.challenger = msg.sender;
@@ -213,7 +214,7 @@ contract Registry {
         if (canBeWhitelisted(_listingHash)) {
           whitelistApplication(_listingHash);
         } else if (challengeCanBeResolved(_listingHash)) {
-          /* resolveChallenge(_listingHash); */
+          resolveChallenge(_listingHash);
         } else {
           revert();
         }
@@ -229,6 +230,24 @@ contract Registry {
         for (uint i = 0; i < _listingHashes.length; i++) {
             updateStatus(_listingHashes[i]);
         }
+    }
+
+    function resolveChallenge(bytes _listingHash) private {
+      Listing storage listing = listings[_listingHash];
+
+      uint challengeID = listings[_listingHash].challengeID;
+      ChallengeInterface challenge = challengeAddress(_listingHash);
+
+      if (!challenge.passed()) {
+          whitelistApplication(_listingHash);
+          _ChallengeFailed(_listingHash, challengeID);
+      } else {
+          // Transfer the reward to the challenger
+          require(token.transfer(listing.challenger, challengeAddress(_listingHash).stake()));
+          resetListing(_listingHash);
+          _ChallengeSucceeded(_listingHash, challengeID);
+      }
+      challenges[challengeID].resolved = true;
     }
 
     // --------
@@ -270,6 +289,29 @@ contract Registry {
     */
     function appWasMade(bytes32 _listingHash) view public returns (bool exists) {
         return listings[_listingHash].applicationExpiry > 0;
+    }
+
+    /**
+    @dev                Returns true if the application/listingHash has an unresolved challenge
+    @param _listingHash The listingHash whose status is to be examined
+    */
+    function challengeExists(bytes32 _listingHash) view public returns (bool) {
+        uint challengeID = listings[_listingHash].challengeID;
+
+        return (listings[_listingHash].challengeID > 0 && !challengeAddress(_listingHash).resolved);
+    }
+
+    /**
+    @dev                Determines whether voting has concluded in a challenge for a given
+                        listingHash. Throws if no challenge exists.
+    @param _listingHash A listingHash with an unresolved challenge
+    */
+    function challengeCanBeResolved(bytes32 _listingHash) view public returns (bool) {
+        uint challengeID = listings[_listingHash].challengeID;
+
+        require(challengeExists(_listingHash));
+
+        return challengeAddress(_listingHash).ended();
     }
 
     // ----------------
@@ -317,7 +359,7 @@ contract Registry {
         }
     }
 
-    function challengeAddress(bytes32 _listingHash) private {
+    function challengeAddress(bytes32 _listingHash) private returns (ChallengeInterface) {
       Listing storage listing = listings[_listingHash];
       return challenges[listing.challengeID].challengeAddress;
     }
