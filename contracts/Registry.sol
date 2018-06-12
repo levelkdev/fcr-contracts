@@ -36,8 +36,13 @@ contract Registry {
         address challenger;     // Address of the challenger
     }
 
+    struct Challenge {
+      ChallengeInterface challengeAddress;
+      bool resolved;
+    }
+
     // Maps challengeID to challenge contract address
-    mapping(uint => ChallengeInterface) public challenges;
+    mapping(uint => Challenge) public challenges;
 
     // Maps listingHashes to associated listingHash data
     mapping(bytes32 => Listing) public listings;
@@ -120,15 +125,9 @@ contract Registry {
     function withdraw(bytes32 _listingHash, uint _amount) external {
         Listing storage listing = listings[_listingHash];
 
-        uint tokenLockAmount;
-        if (listing.challengeID > 0) {
-            tokenLockAmount = challenges[listing.challengeID].tokenLockAmount();
-        }
-
         require(listing.owner == msg.sender);
         require(_amount <= listing.unstakedDeposit);
         require(listing.unstakedDeposit - _amount >= parameterizer.get("minDeposit"));
-        require(listing.unstakedDeposit - _amount >= parameterizer.get("minDeposit") + tokenLockAmount);
 
         listing.unstakedDeposit -= _amount;
         require(token.transfer(msg.sender, _amount));
@@ -148,7 +147,7 @@ contract Registry {
         require(isWhitelisted(_listingHash));
 
         // Cannot exit during ongoing challenge
-        require(listing.challengeID == 0 || challenges[listing.challengeID].ended());
+        require(listing.challengeID == 0 || challengeAddress(_listingHash).ended());
 
         // Remove listingHash & return tokens
         resetListing(_listingHash);
@@ -172,7 +171,7 @@ contract Registry {
         // Listing must be in apply stage or already on the whitelist
         require(appWasMade(_listingHash) || listing.whitelisted);
         // Prevent multiple challenges
-        require(listing.challengeID == 0 || challenges[listing.challengeID].ended());
+        require(listing.challengeID == 0 || challengeAddress(_listingHash).ended());
 
         if (listing.unstakedDeposit < minDeposit) {
             // Not enough tokens, listingHash auto-delisted
@@ -194,7 +193,7 @@ contract Registry {
     }
 
     function updateStatus(bytes32 _listingHash) public {
-        Listing storage listing = listings[_listingHash];
+        /* Listing storage listing = listings[_listingHash];
         uint challengeID = listings[_listingHash].challengeID;
 
         require(challenges[challengeID].ended());
@@ -208,7 +207,15 @@ contract Registry {
 
             resetListing(_listingHash);
 
-            emit _ChallengeSucceeded(_listingHash, challengeID);
+            _ChallengeSucceeded(_listingHash, challengeID);
+        } */
+
+        if (canBeWhitelisted(_listingHash)) {
+          whitelistApplication(_listingHash);
+        } else if (challengeCanBeResolved(_listingHash)) {
+          /* resolveChallenge(_listingHash); */
+        } else {
+          revert();
         }
     }
 
@@ -243,7 +250,7 @@ contract Registry {
             appWasMade(_listingHash) &&
             listings[_listingHash].applicationExpiry < now &&
             !isWhitelisted(_listingHash) &&
-            (challengeID == 0 || challenges[challengeID].ended() == true)
+            (challengeID == 0 || challenges[challengeID].resolved == true)
         ) { return true; }
 
         return false;
@@ -297,8 +304,8 @@ contract Registry {
         // Deleting listing to prevent reentry
         address owner = listing.owner;
         uint unstakedDeposit;
-        if (listing.challengeID > 0 && challenges[listing.challengeID].passed()) {
-            unstakedDeposit = listing.unstakedDeposit - challenges[listing.challengeID].tokenLockAmount();
+        if (listing.challengeID > 0 && challengeAddress(_listingHash).passed()) {
+            unstakedDeposit = listing.unstakedDeposit - challengeAddress(_listingHash).stake();
         } else {
             unstakedDeposit = listing.unstakedDeposit;
         }
@@ -308,5 +315,10 @@ contract Registry {
         if (unstakedDeposit > 0) {
             require(token.transfer(owner, unstakedDeposit));
         }
+    }
+
+    function challengeAddress(bytes32 _listingHash) private {
+      Listing storage listing = listings[_listingHash];
+      return challenges[listing.challengeID].challengeAddress;
     }
 }
