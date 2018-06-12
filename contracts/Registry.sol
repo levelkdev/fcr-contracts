@@ -31,7 +31,7 @@ contract Registry {
         uint applicationExpiry; // Expiration date of apply stage
         bool whitelisted;       // Indicates registry status
         address owner;          // Owner of Listing
-        uint deposit;           // Number of tokens in the listing not locked in a challenge
+        uint unstakedDeposit;   // Number of tokens in the listing not locked in a challenge
         uint challengeID;       // Corresponds to challenge contract in the challenges mapping
         address challenger;     // Address of the challenger
     }
@@ -88,7 +88,7 @@ contract Registry {
 
         // Sets apply stage end time
         listing.applicationExpiry = block.timestamp.add(parameterizer.get("applyStageLen"));
-        listing.deposit = _amount;
+        listing.unstakedDeposit = _amount;
 
         // Transfers tokens from user to Registry contract
         require(token.transferFrom(listing.owner, this, _amount));
@@ -106,10 +106,10 @@ contract Registry {
 
         require(listing.owner == msg.sender);
 
-        listing.deposit += _amount;
+        listing.unstakedDeposit += _amount;
         require(token.transferFrom(msg.sender, this, _amount));
 
-        emit _Deposit(_listingHash, _amount, listing.deposit, msg.sender);
+        emit _Deposit(_listingHash, _amount, listing.unstakedDeposit, msg.sender);
     }
 
     /**
@@ -120,20 +120,20 @@ contract Registry {
     function withdraw(bytes32 _listingHash, uint _amount) external {
         Listing storage listing = listings[_listingHash];
 
-        // TODO: test that this tokenLockAmount logic works
         uint tokenLockAmount;
         if (listing.challengeID > 0) {
             tokenLockAmount = challenges[listing.challengeID].tokenLockAmount();
         }
 
         require(listing.owner == msg.sender);
-        require(_amount <= listing.deposit);
-        require(listing.deposit - _amount >= parameterizer.get("minDeposit") + tokenLockAmount);
+        require(_amount <= listing.unstakedDeposit);
+        require(listing.unstakedDeposit - _amount >= parameterizer.get("minDeposit"));
+        require(listing.unstakedDeposit - _amount >= parameterizer.get("minDeposit") + tokenLockAmount);
 
-        listing.deposit -= _amount;
+        listing.unstakedDeposit -= _amount;
         require(token.transfer(msg.sender, _amount));
 
-        emit _Withdrawal(_listingHash, _amount, listing.deposit, msg.sender);
+        emit _Withdrawal(_listingHash, _amount, listing.unstakedDeposit, msg.sender);
     }
 
     /**
@@ -174,15 +174,17 @@ contract Registry {
         // Prevent multiple challenges
         require(listing.challengeID == 0 || challenges[listing.challengeID].ended());
 
-        if (listing.deposit < minDeposit) {
+        if (listing.unstakedDeposit < minDeposit) {
             // Not enough tokens, listingHash auto-delisted
             resetListing(_listingHash);
             emit _TouchAndRemoved(_listingHash);
             return 0;
         }
 
+        require(token.transferFrom(msg.sender, this, deposit));
         challengeNonce = challengeNonce + 1;
         challenges[challengeNonce] = challengeFactory.createChallenge(msg.sender, listing.owner);
+        require(token.transfer(challenges[challengeNonce], deposit));
         listing.challengeID = challengeNonce;
         listing.challenger = msg.sender;
 
@@ -296,9 +298,9 @@ contract Registry {
         address owner = listing.owner;
         uint unstakedDeposit;
         if (listing.challengeID > 0 && challenges[listing.challengeID].passed()) {
-            unstakedDeposit = listing.deposit - challenges[listing.challengeID].tokenLockAmount();
+            unstakedDeposit = listing.unstakedDeposit - challenges[listing.challengeID].tokenLockAmount();
         } else {
-            unstakedDeposit = listing.deposit;
+            unstakedDeposit = listing.unstakedDeposit;
         }
         delete listings[_listingHash];
 
