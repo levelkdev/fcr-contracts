@@ -1,5 +1,6 @@
 pragma solidity ^0.4.8;
 import "../Parameterizer.sol";
+import "../Registry.sol";
 import "tokens/eip20/EIP20Interface.sol";
 import "dll/DLL.sol";
 import "attrstore/AttributeStore.sol";
@@ -37,9 +38,9 @@ contract PLCRVotingChallenge is ChallengeInterface {
 
     address public challenger;     /// the address of the challenger
     address public listingOwner;   /// the address of the listingOwner
+    address public registry;
     PLCRVoting public voting;      /// address of PLCRVoting Contract
     uint public pollID;            /// pollID of PLCRVoting
-    bool public isStarted;         /// true if challenger has executed start()
     bool challengeResolved;        /// true is challenge has officially been resolved to passed or failed
     uint public commitEndDate;     /// expiration date of commit period for poll
     uint public revealEndDate;     /// expiration date of reveal period for poll
@@ -83,11 +84,12 @@ contract PLCRVotingChallenge is ChallengeInterface {
     @dev Initializes voteQuorum, commitDuration, revealDuration, and pollNonce in addition to token contract and trusted mapping
     @param _tokenAddr The address where the ERC20 token contract is deployed
     */
-    function PLCRVotingChallenge(address _challenger, address _listingOwner, address _tokenAddr, PLCRVoting _voting, Parameterizer _parameterizer) public {
+    function PLCRVotingChallenge(address _challenger, address _listingOwner, address _registry, address _tokenAddr, PLCRVoting _voting, Parameterizer _parameterizer) public {
         challenger = _challenger;
         listingOwner = _listingOwner;
 
         token = EIP20Interface(_tokenAddr);
+        registry = _registry;
         voting = _voting;
 
         commitStageLen = _parameterizer.get("commitStageLen");
@@ -102,18 +104,6 @@ contract PLCRVotingChallenge is ChallengeInterface {
                  );
     }
 
-    // ================
-    // TOKEN INTERFACE:
-    // ================
-    function start() public onlyChallenger {
-        require(token.transferFrom(challenger, this, stake));
-
-        commitEndDate = block.timestamp.add(commitStageLen);
-        revealEndDate = commitEndDate.add(revealStageLen);
-
-        isStarted = true;
-    }
-
     // =================
     // VOTING INTERFACE:
     // =================
@@ -124,7 +114,7 @@ contract PLCRVotingChallenge is ChallengeInterface {
     */
     function claimVoterReward(uint _salt) public {
         // Ensures the voter has not already claimed tokens
-        require(tokenClaims[msg.sender] == false);
+         require(tokenClaims[msg.sender] == false);
 
         uint voterTokens = voting.getNumPassingTokens(msg.sender, pollID, _salt);
         uint reward = voterReward(msg.sender, _salt);
@@ -135,6 +125,7 @@ contract PLCRVotingChallenge is ChallengeInterface {
         // Ensures a voter cannot claim tokens again
         tokenClaims[msg.sender] = true;
 
+        require(token.transferFrom(registry, this, reward));
         require(token.transfer(msg.sender, reward));
 
         _RewardClaimed(reward, msg.sender);
@@ -144,7 +135,7 @@ contract PLCRVotingChallenge is ChallengeInterface {
         require(ended() && !winnerRewardTransferred);
 
         address winner = passed() ? challenger : listingOwner;
-        uint voterRewards = getTotalNumberOfTokensForWinningOption() == 0 ? 0 : rewardPool;
+        uint voterRewards = voting.getTotalNumberOfTokensForWinningOption(pollID) == 0 ? 0 : rewardPool;
 
         require(token.transfer(winner, stake - rewardPool));
 
@@ -159,22 +150,14 @@ contract PLCRVotingChallenge is ChallengeInterface {
     // ==================
 
     /**
-    @notice Signal from Registry that Challenge has Passed
-    @dev Signals that challenge has officially been resolved on the registry
-    */
-    function resolveChallenge() public {
-      challengeResolved = true;
-    }
-
-
-
-    /**
     @notice Determines if the challenge has passed
     @dev Check if votesAgainst out of totalVotes exceeds votesQuorum (requires ended)
     */
     function passed() public view returns (bool) {
         require(ended());
-        return (100 * votesAgainst) > (voteQuorum * (votesFor + votesAgainst));
+
+        // if votes do not vote in favor of listing, challenge passes
+        return !voting.isPassed(pollID);
     }
 
     /**
@@ -186,9 +169,10 @@ contract PLCRVotingChallenge is ChallengeInterface {
     function voterReward(address _voter, uint _salt)
     public view returns (uint) {
         uint voterTokens = voting.getNumPassingTokens(_voter, pollID, _salt);
-        uint remainingRewardPool = rewardPool - voterRewardsClaimed;
-        uint remainingTotalTokens = getTotalNumberOfTokensForWinningOption() - voterTokensClaimed;
-        return (voterTokens * remainingRewardPool) / remainingTotalTokens;
+        /* uint remainingRewardPool = rewardPool - voterRewardsClaimed; */
+        /* uint remainingTotalTokens = voting.getTotalNumberOfTokensForWinningOption(pollID) - voterTokensClaimed; */
+        /* return (voterTokens * remainingRewardPool) / remainingTotalTokens; */
+        return voterTokens;
     }
 
     /**
@@ -198,34 +182,16 @@ contract PLCRVotingChallenge is ChallengeInterface {
         require(ended());
 
         // Edge case, nobody voted, give all tokens to the challenger.
-        if (getTotalNumberOfTokensForWinningOption() == 0) {
+        if (voting.getTotalNumberOfTokensForWinningOption(pollID) == 0) {
             return 2 * stake;
         }
 
         return (2 * stake) - rewardPool;
     }
 
-    function started() public view returns (bool) {
-        return isStarted;
-    }
-
     // ----------------
     // CHALLENGE HELPERS:
     // ----------------
-
-    /**
-    @dev Gets the total winning votes for reward distribution purposes
-    @return Total number of votes committed to the winning option
-    */
-    function getTotalNumberOfTokensForWinningOption() constant public returns (uint numTokens) {
-        require(ended());
-
-        if (!passed()) {
-            return votesFor;
-        } else {
-            return votesAgainst;
-        }
-    }
 
     /**
     @notice Checks if a challenge is ended
@@ -234,6 +200,10 @@ contract PLCRVotingChallenge is ChallengeInterface {
     */
     function ended() view public returns (bool) {
       return voting.pollEnded(pollID);
+    }
+
+    function stake() view public returns (uint) {
+      return stake;
     }
 
 

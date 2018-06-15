@@ -13,7 +13,7 @@ contract PLCRVotingChallengeFactory is ChallengeFactoryInterface {
   // GLOBAL VARIABLES
   address public token;                // Address of the TCR's intrinsic ERC20 token
   Parameterizer public parameterizer;  // Address of the TCR's associeted Parameterizer contract
-  PLCRVoting public voting;               // Address of PLCRVoting Contract
+  PLCRVoting public voting;            // Address of PLCRVoting Contract
 
   // ------------
   // CONSTRUCTOR:
@@ -35,10 +35,11 @@ contract PLCRVotingChallengeFactory is ChallengeFactoryInterface {
   /// @param _challenger             Address of the challenger
   /// @param _listingOwner           Address of the listing owner
   /// @return ChallengeInterface    Newly created Challenge
-  function createChallenge(address _challenger, address _listingOwner) external returns (ChallengeInterface) {
+  function createChallenge(address _challenger, address _listingOwner, address _registry) external returns (ChallengeInterface) {
     return new PLCRVotingChallenge(
       _challenger,
       _listingOwner,
+      _registry,
       token,
       voting,
       parameterizer

@@ -185,7 +185,7 @@ contract Registry {
         require(token.transferFrom(msg.sender, this, deposit));
 
         challengeNonce = challengeNonce + 1;
-        ChallengeInterface challengeAddress = challengeFactory.createChallenge(msg.sender, listing.owner);
+        ChallengeInterface challengeAddress = challengeFactory.createChallenge(msg.sender, listing.owner, this);
         challenges[challengeNonce].challengeAddress = challengeAddress;
         listing.challengeID = challengeNonce;
         listing.challenger = msg.sender;
