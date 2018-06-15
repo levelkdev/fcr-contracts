@@ -145,21 +145,6 @@ contract PLCRVotingChallenge is ChallengeInterface {
         // TODO event
     }
 
-    // ==================
-    // CHALLENGE INTERFACE:
-    // ==================
-
-    /**
-    @notice Determines if the challenge has passed
-    @dev Check if votesAgainst out of totalVotes exceeds votesQuorum (requires ended)
-    */
-    function passed() public view returns (bool) {
-        require(ended());
-
-        // if votes do not vote in favor of listing, challenge passes
-        return !voting.isPassed(pollID);
-    }
-
     /**
     @dev                Calculates the provided voter's token reward.
     @param _voter       The address of the voter whose reward balance is to be returned
@@ -169,10 +154,9 @@ contract PLCRVotingChallenge is ChallengeInterface {
     function voterReward(address _voter, uint _salt)
     public view returns (uint) {
         uint voterTokens = voting.getNumPassingTokens(_voter, pollID, _salt);
-        /* uint remainingRewardPool = rewardPool - voterRewardsClaimed; */
-        /* uint remainingTotalTokens = voting.getTotalNumberOfTokensForWinningOption(pollID) - voterTokensClaimed; */
-        /* return (voterTokens * remainingRewardPool) / remainingTotalTokens; */
-        return voterTokens;
+        uint remainingRewardPool = rewardPool - voterRewardsClaimed;
+        uint remainingTotalTokens = voting.getTotalNumberOfTokensForWinningOption(pollID) - voterTokensClaimed; */
+        return (voterTokens * remainingRewardPool) / remainingTotalTokens;
     }
 
     /**
@@ -189,9 +173,18 @@ contract PLCRVotingChallenge is ChallengeInterface {
         return (2 * stake) - rewardPool;
     }
 
-    // ----------------
-    // CHALLENGE HELPERS:
-    // ----------------
+    // ====================
+    // CHALLENGE INTERFACE:
+    // ====================
+
+    /**
+    @notice Returns how much tokens challenger stake
+    @dev Returns how much tokens challenger stake
+    @return integer representing amount staked by challenger
+    */
+    function stake() view public returns (uint) {
+      return stake;
+    }
 
     /**
     @notice Checks if a challenge is ended
@@ -202,10 +195,16 @@ contract PLCRVotingChallenge is ChallengeInterface {
       return voting.pollEnded(pollID);
     }
 
-    function stake() view public returns (uint) {
-      return stake;
-    }
+    /**
+    @notice Determines if the challenge has passed
+    @dev Check if votesAgainst out of totalVotes exceeds votesQuorum (requires ended)
+    */
+    function passed() public view returns (bool) {
+        require(ended());
 
+        // if votes do not vote in favor of listing, challenge passes
+        return !voting.isPassed(pollID);
+    }
 
     /**
     @notice Checks if a challenge is resolved
