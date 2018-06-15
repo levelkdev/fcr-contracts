@@ -9,4 +9,8 @@ contract ChallengeInterface {
 
   /// @dev returns how much token the challenger staked
   function stake() public view returns (uint);
+
+  /// @dev returns the amount of challenge deposit tokens
+  ///      the challenge requires to carry out functionality
+  function requiredTokenAmount() public view returns(uint);
 }

@@ -190,7 +190,8 @@ contract Registry {
         listing.challengeID = challengeNonce;
         listing.challenger = msg.sender;
 
-        require(token.approve(challengeAddress, deposit));
+        uint requiredTokenAmount = challengeAddress.requiredTokenAmount();
+        require(token.approve(challengeAddress, requiredTokenAmount));
 
         _Challenge(_listingHash, challengeNonce, challenges[challengeNonce].challengeAddress, _data, msg.sender);
         return challengeNonce;
@@ -219,16 +220,18 @@ contract Registry {
     }
 
     function resolveChallenge(bytes32 _listingHash) private {
-      Listing storage listing = listings[_listingHash];
-      uint challengeID = listings[_listingHash].challengeID;
+      Listing storage listing      = listings[_listingHash];
       ChallengeInterface challenge = challengeAddr(_listingHash);
+      uint challengeID  = listings[_listingHash].challengeID;
+      uint winnerReward = (challenge.stake() * 2) - challenge.requiredTokenAmount();
 
       if (!challenge.passed()) {
           whitelistApplication(_listingHash);
+          listing.unstakedDeposit += winnerReward;
           _ChallengeFailed(_listingHash, challengeID);
       } else {
           // Transfer the reward to the challenger
-          require(token.transfer(listing.challenger, challengeAddr(_listingHash).stake()));
+          require(token.transfer(listing.challenger, winnerReward));
           resetListing(_listingHash);
           _ChallengeSucceeded(_listingHash, challengeID);
       }

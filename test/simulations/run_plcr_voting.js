@@ -42,7 +42,7 @@ contract('simulate TCR apply/challenge/resolve', (accounts) => {
       const voting = await PLCRVoting.deployed()
       await logBalances(accounts, token)
 
-      console.log(`*** apply with listingHash=${listingHash}`)
+      console.log(`---------------- APPLY listingHash=${listingHash} ----------------`)
       console.log('')
       await utils.as(applicant, registry.apply, listingHash, paramConfig.minDeposit, '')
       const listingResult = await registry.listings.call(listingHash)
@@ -52,24 +52,20 @@ contract('simulate TCR apply/challenge/resolve', (accounts) => {
       const { challengeID } = receipt.logs[0].args
       const plcrChallenge = await utils.getPLCRChallenge(challengeID)
       const pollID = await plcrChallenge.pollID()
-      console.log(`*** challenge #${challengeID} created`)
+      console.log(`---------------- CHALLENGE #${challengeID} CREATED/STARTED ----------------`)
       console.log('')
 
-      await utils.as(challenger, token.approve, plcrChallenge.address, 10 * 10 ** 18)
-      await utils.as(challenger, plcrChallenge.start)
-      console.log(`*** challenge started`)
-      console.log('')
       await logBalances(accounts, token, plcrChallenge)
 
       await logListingInfo(listingHash)
 
-      console.log('*** commit votes')
+      console.log('---------------- COMMIT VOTES ----------------')
       console.log('')
       await utils.commitVote(pollID, 1, numVotesFor, 420, voterFor)
       await utils.commitVote(pollID, 0, numVotesAgainst, 420, voterAgainst)
       await utils.increaseTime(paramConfig.commitStageLength + 1)
 
-      console.log('*** reveal votes')
+      console.log('---------------- REVEAL VOTES ----------------')
       console.log('')
       await voting.revealVote(pollID, 1, 420, { from: voterFor })
       await voting.revealVote(pollID, 0, 420, { from: voterAgainst })
@@ -77,33 +73,32 @@ contract('simulate TCR apply/challenge/resolve', (accounts) => {
       await logBalances(accounts, token, plcrChallenge)
       await logChallengeReward(challengeID)
 
-      console.log('*** update status (update application status based on challenge result)')
+      await logListingInfo(listingHash)
+
+      console.log('---------------- UPDATE STATUS (update application status based on challenge result) ----------------')
       console.log('')
       await registry.updateStatus(listingHash)
+      await logListingInfo(listingHash)
       await logBalances(accounts, token, plcrChallenge)
       await logChallengeInfo(challengeID)
       await logVoterRewardInfo(challengeID, voterFor, voterAgainst)
 
-      console.log('*** winning voters claim reward')
+      console.log('---------------- CLAIM REWARD ----------------')
       console.log('')
-      try { await plcrChallenge.claimVoterReward(420, { from: voterFor }) } catch (err) { }
-      try { await plcrChallenge.claimVoterReward(420, { from: voterAgainst }) } catch (err) { }
+      const bla = await plcrChallenge.voterReward.call(voterAgainst, 420)
+      console.log('voterReward = ', bla.toNumber())
+      console.log('')
+      await plcrChallenge.claimVoterReward(420, {from: voterAgainst})
+
       await logBalances(accounts, token, plcrChallenge)
 
-      console.log('*** winner (either challenger or listing owner) claims reward')
-      console.log('')
-      await plcrChallenge.transferWinnerReward()
-      await logBalances(accounts, token, plcrChallenge)
-
-      console.log('*** voters withdraw tokens from PLCR')
-      console.log('')
+      console.log('---------------- WITHDRAW VOTING RIGHTS ----------------')
       await voting.withdrawVotingRights(numVotesFor, { from: voterFor })
       await voting.withdrawVotingRights(numVotesAgainst, { from: voterAgainst })
       await logBalances(accounts, token, plcrChallenge)
-      await logListingInfo(listingHash)
 
       console.log('*** try to exit listing (works if challenge was not successful)')
-      console.log('')
+      console.log()
       try { await registry.exit(listingHash, { from: applicant }) } catch (err) { }
       await logBalances(accounts, token, plcrChallenge)
       await logListingInfo(listingHash)
@@ -117,7 +112,7 @@ async function logBalances(accounts, token, plcrChallenge) {
   const [_, applicant, challenger, voterFor, voterAgainst] = accounts
   const applicantBalance = (await token.balanceOf.call(applicant)).toNumber()
   const challengerBalance = (await token.balanceOf.call(challenger)).toNumber()
-  const voterForBalance = (await token.balanceOf.call(voterFor)).toNumber()/(10**18)
+  const voterForBalance = (await token.balanceOf.call(voterFor)).toNumber()
   const voterAgainstBalance = (await token.balanceOf.call(voterAgainst)).toNumber()
   const registryBalance = (await token.balanceOf.call(registry.address)).toNumber()
   console.log('balances:')
@@ -152,10 +147,9 @@ async function logChallengeInfo(challengeID) {
   const registry = await Registry.deployed()
   const plcrChallenge = await utils.getPLCRChallenge(challengeID)
   console.log(`challenge: #${challengeID}`)
-  console.log(`   started(): ${await plcrChallenge.started()}`)
   console.log(`   ended(): ${await plcrChallenge.ended()}`)
   console.log(`   passed(): ${await plcrChallenge.passed()}`)
-  console.log(`   tokenLockAmount(): ${await plcrChallenge.tokenLockAmount()}`)
+  console.log(`   stake(): ${await plcrChallenge.stake()}`)
   console.log(`   tokenRewardAmount(): ${await plcrChallenge.tokenRewardAmount()}`)
   console.log('')
 }

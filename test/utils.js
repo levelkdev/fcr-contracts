@@ -169,7 +169,8 @@ const utils = {
 
   getPLCRChallenge: async (challengeID) => {
     const registry = await Registry.deployed();
-    const plcrChallengeAddress = await registry.challenges(challengeID)
+    const challengeInfo = await registry.challenges(challengeID)
+    const plcrChallengeAddress = challengeInfo[0]
     return PLCRVotingChallenge.at(plcrChallengeAddress)
   },
 

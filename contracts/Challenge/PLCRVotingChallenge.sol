@@ -50,7 +50,6 @@ contract PLCRVotingChallenge is ChallengeInterface {
     uint public votesFor;		       /// tally of votes supporting proposal
     uint public votesAgainst;      /// tally of votes countering proposal
 
-    bool public winnerRewardTransferred;
     uint public voterTokensClaimed;
     uint public voterRewardsClaimed;
 
@@ -131,20 +130,6 @@ contract PLCRVotingChallenge is ChallengeInterface {
         _RewardClaimed(reward, msg.sender);
     }
 
-    function transferWinnerReward() public {
-        require(ended() && !winnerRewardTransferred);
-
-        address winner = passed() ? challenger : listingOwner;
-        uint voterRewards = voting.getTotalNumberOfTokensForWinningOption(pollID) == 0 ? 0 : rewardPool;
-
-        require(token.transfer(winner, stake - rewardPool));
-
-        winnerRewardTransferred = true;
-
-
-        // TODO event
-    }
-
     /**
     @dev                Calculates the provided voter's token reward.
     @param _voter       The address of the voter whose reward balance is to be returned
@@ -155,7 +140,7 @@ contract PLCRVotingChallenge is ChallengeInterface {
     public view returns (uint) {
         uint voterTokens = voting.getNumPassingTokens(_voter, pollID, _salt);
         uint remainingRewardPool = rewardPool - voterRewardsClaimed;
-        uint remainingTotalTokens = voting.getTotalNumberOfTokensForWinningOption(pollID) - voterTokensClaimed; */
+        uint remainingTotalTokens = voting.getTotalNumberOfTokensForWinningOption(pollID) - voterTokensClaimed;
         return (voterTokens * remainingRewardPool) / remainingTotalTokens;
     }
 
@@ -178,12 +163,21 @@ contract PLCRVotingChallenge is ChallengeInterface {
     // ====================
 
     /**
-    @notice Returns how much tokens challenger stake
-    @dev Returns how much tokens challenger stake
-    @return integer representing amount staked by challenger
+    @notice Returns amount of tokens staked by challenger
+    @dev Returns amount of tokens staked by challenger
+    @return integer representing stake
     */
     function stake() view public returns (uint) {
       return stake;
+    }
+
+    /**
+    @notice Returns tokens required by challenge contract
+    @dev Returns tokens required by challenge contract
+    @return Returns tokens required by challenge contract
+    */
+    function requiredTokenAmount() public view returns(uint) {
+      return rewardPool;
     }
 
     /**
