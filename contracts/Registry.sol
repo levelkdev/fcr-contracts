@@ -190,8 +190,8 @@ contract Registry {
         listing.challengeID = challengeNonce;
         listing.challenger = msg.sender;
 
-        uint requiredTokenAmount = challengeAddress.requiredTokenAmount();
-        require(token.approve(challengeAddress, requiredTokenAmount));
+        uint requiredTokenDeposit = challengeAddress.requiredTokenDeposit();
+        require(token.approve(challengeAddress, requiredTokenDeposit));
 
         _Challenge(_listingHash, challengeNonce, challenges[challengeNonce].challengeAddress, _data, msg.sender);
         return challengeNonce;
@@ -223,7 +223,7 @@ contract Registry {
       Listing storage listing      = listings[_listingHash];
       ChallengeInterface challenge = challengeAddr(_listingHash);
       uint challengeID  = listings[_listingHash].challengeID;
-      uint winnerReward = (challenge.stake() * 2) - challenge.requiredTokenAmount();
+      uint winnerReward = (challenge.stake() * 2) - challenge.requiredTokenDeposit();
 
       if (!challenge.passed()) {
           whitelistApplication(_listingHash);

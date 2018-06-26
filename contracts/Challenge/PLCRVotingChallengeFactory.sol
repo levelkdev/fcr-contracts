@@ -18,12 +18,12 @@ contract PLCRVotingChallengeFactory is ChallengeFactoryInterface {
   // ------------
   // CONSTRUCTOR:
   // ------------
-  /// @dev Contructor                  Sets the global state for the factory
-  /// @param _tokenAddr                Address of the TCR's intrinsic ERC20 token
+  /// @dev Constructor                 Sets the global state for the factory
+  /// @param _token                    Address of the TCR's intrinsic ERC20 token
   /// @param _parameterizer            Address of the TCR's associeted Parameterizer contract
   /// @param _plcrVoting               Address of PLCRVoting contract
-  function PLCRVotingChallengeFactory(address _tokenAddr, address _parameterizer, PLCRVoting _plcrVoting) public {
-    token = _tokenAddr;
+  function PLCRVotingChallengeFactory(address _token, address _parameterizer, PLCRVoting _plcrVoting) public {
+    token = _token;
     parameterizer = Parameterizer(_parameterizer);
     voting = _plcrVoting;
   }

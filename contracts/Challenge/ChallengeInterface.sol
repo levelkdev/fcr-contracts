@@ -12,5 +12,5 @@ contract ChallengeInterface {
 
   /// @dev returns the amount of challenge deposit tokens
   ///      the challenge requires to carry out functionality
-  function requiredTokenAmount() public view returns(uint);
+  function requiredTokenDeposit() public view returns(uint);
 }

@@ -44,10 +44,10 @@ contract PLCRVotingChallenge is ChallengeInterface {
     bool challengeResolved;        /// true is challenge has officially been resolved to passed or failed
     uint public commitEndDate;     /// expiration date of commit period for poll
     uint public revealEndDate;     /// expiration date of reveal period for poll
-    uint public voteQuorum;	       /// number of votes required for a proposal to pass
+    uint public voteQuorum;	    /// number of votes required for a proposal to pass
     uint public rewardPool;        /// pool of tokens to be distributed to winning voters
-    uint public stake;             /// number of tokens at stake for either party during challenge
-    uint public votesFor;		       /// tally of votes supporting proposal
+    uint public challengerStake;   /// number of tokens at stake for either party during challenge
+    uint public votesFor;		    /// tally of votes supporting proposal
     uint public votesAgainst;      /// tally of votes countering proposal
 
     uint public voterTokensClaimed;
@@ -91,16 +91,12 @@ contract PLCRVotingChallenge is ChallengeInterface {
         registry = _registry;
         voting = _voting;
 
-        commitStageLen = _parameterizer.get("commitStageLen");
-        revealStageLen = _parameterizer.get("revealStageLen");
-        voteQuorum     = _parameterizer.get("voteQuorum");
-        stake          = _parameterizer.get("minDeposit");
-        rewardPool     = ((100 - _parameterizer.get("dispensationPct")) * stake) / 100;
-        pollID = voting.startPoll(
-                   voteQuorum,
-                   commitStageLen,
-                   revealStageLen
-                 );
+        commitStageLen  = _parameterizer.get("commitStageLen");
+        revealStageLen  = _parameterizer.get("revealStageLen");
+        voteQuorum      = _parameterizer.get("voteQuorum");
+        challengerStake = _parameterizer.get("minDeposit");
+        rewardPool      = ((100 - _parameterizer.get("dispensationPct")) * challengerStake) / 100;
+        pollID          = voting.startPoll( voteQuorum, commitStageLen, revealStageLen);
     }
 
     // =================
@@ -152,10 +148,10 @@ contract PLCRVotingChallenge is ChallengeInterface {
 
         // Edge case, nobody voted, give all tokens to the challenger.
         if (voting.getTotalNumberOfTokensForWinningOption(pollID) == 0) {
-            return 2 * stake;
+            return 2 * stake();
         }
 
-        return (2 * stake) - rewardPool;
+        return (2 * stake()) - rewardPool;
     }
 
     // ====================
@@ -168,7 +164,7 @@ contract PLCRVotingChallenge is ChallengeInterface {
     @return integer representing stake
     */
     function stake() view public returns (uint) {
-      return stake;
+      return challengerStake;
     }
 
     /**
@@ -176,7 +172,7 @@ contract PLCRVotingChallenge is ChallengeInterface {
     @dev Returns tokens required by challenge contract
     @return Returns tokens required by challenge contract
     */
-    function requiredTokenAmount() public view returns(uint) {
+    function requiredTokenDeposit() public view returns(uint) {
       return rewardPool;
     }
 
