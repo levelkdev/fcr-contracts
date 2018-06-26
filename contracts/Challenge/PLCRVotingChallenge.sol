@@ -148,10 +148,10 @@ contract PLCRVotingChallenge is ChallengeInterface {
 
         // Edge case, nobody voted, give all tokens to the challenger.
         if (voting.getTotalNumberOfTokensForWinningOption(pollID) == 0) {
-            return 2 * stake();
+            return 0;
         }
 
-        return (2 * stake()) - rewardPool;
+        return rewardPool;
     }
 
     // ====================
@@ -173,7 +173,7 @@ contract PLCRVotingChallenge is ChallengeInterface {
     @return Returns tokens required by challenge contract
     */
     function requiredTokenDeposit() public view returns(uint) {
-      return rewardPool;
+      return stake;
     }
 
     /**
