@@ -182,7 +182,11 @@ contract Registry {
             return 0;
         }
 
-        require(token.transferFrom(msg.sender, this, deposit));
+        // Locks tokens for listingHash during challenge
+        listing.unstakedDeposit -= minDeposit;
+
+        // Takes tokens from challenger
+        require(token.transferFrom(msg.sender, this, minDeposit));
 
         challengeNonce = challengeNonce + 1;
         ChallengeInterface challengeAddress = challengeFactory.createChallenge(msg.sender, listing.owner, this);
