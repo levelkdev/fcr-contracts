@@ -174,6 +174,13 @@ const utils = {
     return receipt.logs[0].args.challengeID;
   },
 
+  getChallengeID: async (domain) => {
+    const registry = await Registry.deployed();
+    const listing = await registry.listings.call(domain);
+    const challengeID = listing[4];
+    return challengeID;
+  },
+
   getPLCRVotingChallenge: async (domain) => {
     const registry = await Registry.deployed();
     const listing = await registry.listings.call(domain);
