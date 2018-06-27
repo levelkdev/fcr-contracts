@@ -165,7 +165,7 @@ contract Registry {
     @param _listingHash The listingHash being challenged, whether listed or in application
     @param _data        Extra data relevant to the challenge. Think IPFS hashes.
     */
-    function createChallenge(bytes32 _listingHash, string _data) external returns (uint challengeID) {
+    function challenge(bytes32 _listingHash, string _data) external returns (uint challengeID) {
         Listing storage listing = listings[_listingHash];
         uint minDeposit = parameterizer.get("minDeposit");
 
