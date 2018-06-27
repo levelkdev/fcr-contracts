@@ -9,7 +9,7 @@ const PLCRVoting = artifacts.require('PLCRVoting.sol');
 
 const fs = require('fs');
 
-module.exports = (deployer, network, accounts) => {
+module.exports = (deployer) => {
   deployer.link(DLL, PLCRVotingChallengeFactory);
   deployer.link(AttributeStore, PLCRVotingChallengeFactory);
 
@@ -25,7 +25,7 @@ module.exports = (deployer, network, accounts) => {
       PLCRVotingChallengeFactory,
       tokenAddress,
       Parameterizer.address,
-      PLCRVoting.address
-    )
-  })
+      PLCRVoting.address,
+    );
+  });
 };

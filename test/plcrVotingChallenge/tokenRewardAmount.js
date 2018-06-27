@@ -1,7 +1,6 @@
 /* eslint-env mocha */
 /* global assert contract artifacts */
 const Registry = artifacts.require('Registry.sol');
-const PLCRVotingChallenge = artifacts.require('PLCRVotingChallenge.sol');
 
 const fs = require('fs');
 
@@ -21,7 +20,6 @@ contract('PLCRVotingChallenge', (accounts) => {
       await utils.as(applicant, registry.apply, listing, paramConfig.minDeposit, '');
       // Challenge
       await utils.challengeAndGetPollID(listing, challenger);
-      const challengeID = await utils.getChallengeID(listing);
       const plcrVotingChallenge = await utils.getPLCRVotingChallenge(listing);
 
       try {

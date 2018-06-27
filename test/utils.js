@@ -192,12 +192,12 @@ const utils = {
 
   commitVote: async (pollID, voteOption, numTokens, salt, voter) => {
     const token = await Token.deployed();
-    const voting = await PLCRVoting.deployed()
+    const voting = await PLCRVoting.deployed();
     const prevPollID = await voting.getInsertPointForNumTokens.call(voter, numTokens, pollID);
-    await utils.as(voter, token.approve, voting.address, numTokens)
-    const hash = utils.getVoteSaltHash(voteOption, salt)
-    await utils.as(voter, voting.requestVotingRights, numTokens)
-    await utils.as(voter, voting.commitVote, pollID, hash, numTokens, prevPollID)
+    await utils.as(voter, token.approve, voting.address, numTokens);
+    const hash = utils.getVoteSaltHash(voteOption, salt);
+    await utils.as(voter, voting.requestVotingRights, numTokens);
+    await utils.as(voter, voting.commitVote, pollID, hash, numTokens, prevPollID);
   },
 
   getReceiptValue: (receipt, arg) => receipt.logs[0].args[arg],
