@@ -227,15 +227,17 @@ contract Registry {
       Listing storage listing      = listings[_listingHash];
       ChallengeInterface challenge = challengeAddr(_listingHash);
       uint challengeID  = listings[_listingHash].challengeID;
-      uint winnerReward = (challenge.stake() * 2) - challenge.requiredTokenDeposit();
+
+      // get the winner's reward
+      uint reward = challenge.tokenRewardAmount();
 
       if (!challenge.passed()) {
           whitelistApplication(_listingHash);
-          listing.unstakedDeposit += winnerReward;
+          listing.unstakedDeposit += reward;
           _ChallengeFailed(_listingHash, challengeID);
       } else {
           // Transfer the reward to the challenger
-          require(token.transfer(listing.challenger, winnerReward));
+          require(token.transfer(listing.challenger, reward));
           resetListing(_listingHash);
           _ChallengeSucceeded(_listingHash, challengeID);
       }
@@ -336,12 +338,7 @@ contract Registry {
 
         // Deleting listing to prevent reentry
         address owner = listing.owner;
-        uint unstakedDeposit;
-        if (listing.challengeID > 0 && challengeAddr(_listingHash).passed()) {
-            unstakedDeposit = listing.unstakedDeposit - challengeAddr(_listingHash).stake();
-        } else {
-            unstakedDeposit = listing.unstakedDeposit;
-        }
+        uint unstakedDeposit = listing.unstakedDeposit;
         delete listings[_listingHash];
 
         // Transfers any remaining balance back to the owner
