@@ -5,7 +5,7 @@ import "tokens/eip20/EIP20Interface.sol";
 import "dll/DLL.sol";
 import "attrstore/AttributeStore.sol";
 import "zeppelin/math/SafeMath.sol";
-import "plcrvoting/PLCRVoting.sol";
+import "plcr-revival/PLCRVoting.sol";
 import "./ChallengeInterface.sol";
 /**
 @title Partial-Lock-Commit-Reveal Voting scheme with ERC20 tokens

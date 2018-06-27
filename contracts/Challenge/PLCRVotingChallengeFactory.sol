@@ -3,7 +3,7 @@ pragma solidity ^0.4.8;
 import "../Parameterizer.sol";
 import "./ChallengeFactoryInterface.sol";
 import "./PLCRVotingChallenge.sol";
-import "plcrvoting/PLCRVoting.sol";
+import "plcr-revival/PLCRVoting.sol";
 
 contract PLCRVotingChallengeFactory is ChallengeFactoryInterface {
 
