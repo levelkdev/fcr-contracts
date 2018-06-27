@@ -1,7 +1,6 @@
 pragma solidity ^0.4.8;
 import "../Parameterizer.sol";
 import "../Registry.sol";
-import "tokens/eip20/EIP20Interface.sol";
 import "dll/DLL.sol";
 import "attrstore/AttributeStore.sol";
 import "zeppelin/math/SafeMath.sol";
@@ -38,7 +37,7 @@ contract PLCRVotingChallenge is ChallengeInterface {
 
     address public challenger;     /// the address of the challenger
     address public listingOwner;   /// the address of the listingOwner
-    address public registry;
+    Registry public registry;
     PLCRVoting public voting;      /// address of PLCRVoting Contract
     uint public pollID;            /// pollID of PLCRVoting
     bool challengeResolved;        /// true is challenge has officially been resolved to passed or failed
@@ -64,8 +63,6 @@ contract PLCRVotingChallenge is ChallengeInterface {
 
     AttributeStore.Data store;
 
-    EIP20Interface public token;
-
     // ============
     // MODIFIERS:
     // ============
@@ -81,13 +78,10 @@ contract PLCRVotingChallenge is ChallengeInterface {
 
     /**
     @dev Initializes voteQuorum, commitDuration, revealDuration, and pollNonce in addition to token contract and trusted mapping
-    @param _tokenAddr The address where the ERC20 token contract is deployed
     */
-    function PLCRVotingChallenge(address _challenger, address _listingOwner, address _registry, address _tokenAddr, PLCRVoting _voting, Parameterizer _parameterizer) public {
+    function PLCRVotingChallenge(address _challenger, address _listingOwner, Registry _registry, PLCRVoting _voting, Parameterizer _parameterizer) public {
         challenger = _challenger;
         listingOwner = _listingOwner;
-
-        token = EIP20Interface(_tokenAddr);
         registry = _registry;
         voting = _voting;
 
@@ -121,8 +115,8 @@ contract PLCRVotingChallenge is ChallengeInterface {
         // Ensures a voter cannot claim tokens again
         tokenClaims[msg.sender] = true;
 
-        require(token.transferFrom(registry, this, reward));
-        require(token.transfer(msg.sender, reward));
+        require(registry.token().transferFrom(registry, this, reward));
+        require(registry.token().transfer(msg.sender, reward));
 
         _RewardClaimed(reward, msg.sender);
     }
