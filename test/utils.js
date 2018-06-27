@@ -174,15 +174,16 @@ const utils = {
     return receipt.logs[0].args.challengeID;
   },
 
-  getPLCRChallenge: async (challengeID) => {
+  getPLCRVotingChallenge: async (domain) => {
     const registry = await Registry.deployed();
-    const challengeInfo = await registry.challenges(challengeID)
-    const plcrChallengeAddress = challengeInfo[0]
-    return PLCRVotingChallenge.at(plcrChallengeAddress)
+    const listing = await registry.listings.call(domain);
+    const challengeID = listing[4];
+    const challengeInfo = await registry.challenges(challengeID);
+    const challengeAddress = challengeInfo[0];
+    return PLCRVotingChallenge.at(challengeAddress);
   },
 
   commitVote: async (pollID, voteOption, numTokens, salt, voter) => {
-    // const plcrChallenge = await utils.getPLCRChallenge(challengeID)
     const token = await Token.deployed();
     const voting = await PLCRVoting.deployed()
     const prevPollID = await voting.getInsertPointForNumTokens.call(voter, numTokens, pollID);

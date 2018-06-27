@@ -109,7 +109,8 @@ contract PLCRVotingChallenge is ChallengeInterface {
     */
     function claimVoterReward(uint _salt) public {
         // Ensures the voter has not already claimed tokens
-         require(tokenClaims[msg.sender] == false);
+        require(tokenClaims[msg.sender] == false);
+        require(ended());
 
         uint voterTokens = voting.getNumPassingTokens(msg.sender, pollID, _salt);
         uint reward = voterReward(msg.sender, _salt);
