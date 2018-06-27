@@ -1,7 +1,5 @@
 /* eslint-env mocha */
-/* global assert contract artifacts */
-const Registry = artifacts.require('Registry.sol');
-
+/* global assert contract */
 const fs = require('fs');
 
 const config = JSON.parse(fs.readFileSync('./conf/config.json'));
@@ -12,8 +10,16 @@ const utils = require('../utils.js');
 contract('PLCRVotingChallenge', (accounts) => {
   describe('Function: tokenRewardAmount', () => {
     const [applicant, challenger] = accounts;
+    let registry;
+
+    before(async () => {
+      const { registryProxy } = await utils.getProxies();
+      registry = registryProxy;
+
+      await utils.approveProxies(accounts, false, false, false, registry);
+    });
+
     it('should revert if the poll has not ended yet', async () => {
-      const registry = await Registry.deployed();
       const listing = utils.getListingHash('failure.net');
 
       // Apply
