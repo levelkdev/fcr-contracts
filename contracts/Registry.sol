@@ -169,8 +169,8 @@ contract Registry {
 
         // Listing must be in apply stage or already on the whitelist
         require(appWasMade(_listingHash) || listing.whitelisted);
+
         // Prevent multiple challenges
-        ChallengeInterface challenge = ChallengeInterface(challengeAddr(_listingHash));
         require(listing.challengeID == 0 || challenges[listing.challengeID].resolved);
 
         if (listing.unstakedDeposit < minDeposit) {
