@@ -10,13 +10,16 @@ const utils = require('../utils.js');
 contract('PLCRVotingChallenge', (accounts) => {
   describe('Function: tokenRewardAmount', () => {
     const [applicant, challenger] = accounts;
+
+    let token;
     let registry;
 
     before(async () => {
-      const { registryProxy } = await utils.getProxies();
+      const { registryProxy, tokenInstance } = await utils.getProxies();
       registry = registryProxy;
+      token = tokenInstance;
 
-      await utils.approveProxies(accounts, false, false, false, registry);
+      await utils.approveProxies(accounts, token, false, false, registry);
     });
 
     it('should revert if the poll has not ended yet', async () => {
@@ -25,8 +28,8 @@ contract('PLCRVotingChallenge', (accounts) => {
       // Apply
       await utils.as(applicant, registry.apply, listing, paramConfig.minDeposit, '');
       // Challenge
-      await utils.challengeAndGetPollID(listing, challenger);
-      const plcrVotingChallenge = await utils.getPLCRVotingChallenge(listing);
+      await utils.challengeAndGetPollID(listing, challenger, registry);
+      const plcrVotingChallenge = await utils.getPLCRVotingChallenge(listing, registry);
 
       try {
         await utils.as(challenger, plcrVotingChallenge.tokenRewardAmount);

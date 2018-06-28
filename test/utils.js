@@ -17,7 +17,7 @@ const Parameterizer = artifacts.require('Parameterizer.sol');
 const Registry = artifacts.require('Registry.sol');
 const Token = artifacts.require('EIP20.sol');
 
-const RegistryFactory = artifacts.require('RegistryFactory.sol');
+const PLCRVotingRegistryFactory = artifacts.require('PLCRVotingRegistryFactory.sol');
 
 const config = JSON.parse(fs.readFileSync('./conf/config.json'));
 const paramConfig = config.paramDefaults;
@@ -26,7 +26,7 @@ const BN = small => new Eth.BN(small.toString(10), 10);
 
 const utils = {
   getProxies: async () => {
-    const registryFactory = await RegistryFactory.deployed();
+    const registryFactory = await PLCRVotingRegistryFactory.deployed();
     const registryReceipt = await registryFactory.newRegistryWithToken(
       config.token.supply,
       config.token.name,
@@ -51,15 +51,16 @@ const utils = {
 
     const {
       token,
-      plcr,
       parameterizer,
       registry,
     } = registryReceipt.logs[0].args;
 
     const tokenInstance = Token.at(token);
-    const votingProxy = PLCRVoting.at(plcr);
     const paramProxy = Parameterizer.at(parameterizer);
     const registryProxy = Registry.at(registry);
+
+    const plcr = await paramProxy.voting.call();
+    const votingProxy = PLCRVoting.at(plcr);
 
     const proxies = {
       tokenInstance,
@@ -174,15 +175,13 @@ const utils = {
     return receipt.logs[0].args.challengeID;
   },
 
-  getChallengeID: async (domain) => {
-    const registry = await Registry.deployed();
+  getChallengeID: async (domain, registry) => {
     const listing = await registry.listings.call(domain);
     const challengeID = listing[4];
     return challengeID;
   },
 
-  getPLCRVotingChallenge: async (domain) => {
-    const registry = await Registry.deployed();
+  getPLCRVotingChallenge: async (domain, registry) => {
     const listing = await registry.listings.call(domain);
     const challengeID = listing[4];
     const challengeInfo = await registry.challenges(challengeID);
@@ -190,14 +189,12 @@ const utils = {
     return PLCRVotingChallenge.at(challengeAddress);
   },
 
-  commitVote: async (pollID, voteOption, numTokens, salt, voter) => {
-    const token = await Token.deployed();
-    const voting = await PLCRVoting.deployed();
-    const prevPollID = await voting.getInsertPointForNumTokens.call(voter, numTokens, pollID);
-    await utils.as(voter, token.approve, voting.address, numTokens);
+  commitVote: async (pollID, voteOption, tokensArg, salt, voter, voting) => {
     const hash = utils.getVoteSaltHash(voteOption, salt);
-    await utils.as(voter, voting.requestVotingRights, numTokens);
-    await utils.as(voter, voting.commitVote, pollID, hash, numTokens, prevPollID);
+    await utils.as(voter, voting.requestVotingRights, tokensArg);
+
+    const prevPollID = await voting.getInsertPointForNumTokens.call(voter, tokensArg, pollID);
+    await utils.as(voter, voting.commitVote, pollID, hash, tokensArg, prevPollID);
   },
 
   getReceiptValue: (receipt, arg) => receipt.logs[0].args[arg],

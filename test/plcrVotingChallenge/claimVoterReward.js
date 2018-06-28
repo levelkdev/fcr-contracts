@@ -37,7 +37,7 @@ contract('PLCRVotingChallenge', (accounts) => {
 
       // Challenge
       const pollID = await utils.challengeAndGetPollID(listing, challenger, registry);
-      const plcrVotingChallenge = await utils.getPLCRVotingChallenge(listing);
+      const plcrVotingChallenge = await utils.getPLCRVotingChallenge(listing, registry);
 
       // Alice is so committed
       await utils.commitVote(pollID, '0', 500, '420', voterAlice, voting);
@@ -74,7 +74,7 @@ contract('PLCRVotingChallenge', (accounts) => {
       await utils.addToWhitelist(listing, minDeposit, applicant, registry);
 
       const pollID = await utils.challengeAndGetPollID(listing, challenger, registry);
-      const plcrVotingChallenge = await utils.getPLCRVotingChallenge(listing);
+      const plcrVotingChallenge = await utils.getPLCRVotingChallenge(listing, registry);
 
       // Alice is so committed
       await utils.commitVote(pollID, '0', 500, '420', voterAlice, voting);
@@ -118,7 +118,7 @@ contract('PLCRVotingChallenge', (accounts) => {
 
       // Challenge
       const pollID = await utils.challengeAndGetPollID(listing, challenger, registry);
-      const plcrVotingChallenge = await utils.getPLCRVotingChallenge(listing);
+      const plcrVotingChallenge = await utils.getPLCRVotingChallenge(listing, registry);
 
       // Alice is so committed
       await utils.commitVote(pollID, '0', 500, '420', voterAlice, voting);
@@ -167,7 +167,7 @@ contract('PLCRVotingChallenge', (accounts) => {
 
       // Challenge
       const pollID = await utils.challengeAndGetPollID(listing, challenger, registry);
-      const plcrVotingChallenge = await utils.getPLCRVotingChallenge(listing);
+      const plcrVotingChallenge = await utils.getPLCRVotingChallenge(listing, registry);
 
       // Alice is so committed
       await utils.commitVote(pollID, '0', 500, '420', voterAlice, voting);

@@ -34,7 +34,7 @@ contract('PLCRVotingChallenge', (accounts) => {
       await utils.addToWhitelist(listing, minDeposit, applicant, registry);
 
       const pollID = await utils.challengeAndGetPollID(listing, challenger, registry);
-      const plcrVotingChallenge = await utils.getPLCRVotingChallenge(listing);
+      const plcrVotingChallenge = await utils.getPLCRVotingChallenge(listing, registry);
 
       await utils.commitVote(pollID, '0', '10', '420', voter, voting);
       await utils.increaseTime(paramConfig.commitStageLength + 1);
