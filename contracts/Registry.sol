@@ -145,7 +145,7 @@ contract Registry {
         require(isWhitelisted(_listingHash));
 
         // Cannot exit during ongoing challenge
-        ChallengeInterface challenge = challengeAddr(_listingHash);
+        ChallengeInterface challenge = challengeForListingHash(_listingHash);
         require(listing.challengeID == 0 || challenge.ended());
 
         // Remove listingHash & return tokens
@@ -223,7 +223,7 @@ contract Registry {
 
     function resolveChallenge(bytes32 _listingHash) private {
       Listing storage listing      = listings[_listingHash];
-      ChallengeInterface challenge = challengeAddr(_listingHash);
+      ChallengeInterface challenge = challengeForListingHash(_listingHash);
       uint challengeID  = listings[_listingHash].challengeID;
 
       // get the winner's reward
@@ -302,7 +302,7 @@ contract Registry {
         uint challengeID = listings[_listingHash].challengeID;
 
         require(challengeExists(_listingHash));
-        return challengeAddr(_listingHash).ended();
+        return challengeForListingHash(_listingHash).ended();
     }
 
     // ----------------
@@ -345,7 +345,11 @@ contract Registry {
         }
     }
 
-    function challengeAddr(bytes32 _listingHash) public returns (ChallengeInterface) {
+    /**
+    @dev                gets a challenge for the given listingHash
+    @param _listingHash The listing hash get the challenge for
+    */
+    function challengeForListingHash(bytes32 _listingHash) private view returns (ChallengeInterface) {
       Listing storage listing = listings[_listingHash];
       return challenges[listing.challengeID].challengeAddress;
     }
