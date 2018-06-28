@@ -2,7 +2,7 @@
 /* global contract assert artifacts */
 
 const EIP20 = artifacts.require('tokens/eip20/EIP20.sol');
-const RegistryFactory = artifacts.require('./RegistryFactory.sol');
+const PLCRVotingRegistryFactory = artifacts.require('./PLCRVotingRegistryFactory.sol');
 const Registry = artifacts.require('./Registry.sol');
 const fs = require('fs');
 
@@ -14,7 +14,7 @@ contract('RegistryFactory', (accounts) => {
     let registryFactory;
 
     before(async () => {
-      registryFactory = await RegistryFactory.deployed();
+      registryFactory = await PLCRVotingRegistryFactory.deployed();
     });
 
     it('should deploy and initialize a new Registry contract', async () => {

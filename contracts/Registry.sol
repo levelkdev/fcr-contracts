@@ -59,13 +59,11 @@ contract Registry {
     @dev Initializer. Can only be called once.
     @param _token The address where the ERC20 token contract is deployed
     */
-    function init(address _token, address _challengeFactory, address _parameterizer, string _name) public {
+    function init(address _token, address _parameterizer, string _name) public {
         require(_token != 0 && address(token) == 0);
-        require(_challengeFactory != 0 && address(challengeFactory) == 0);
         require(_parameterizer != 0 && address(parameterizer) == 0);
 
         token = EIP20Interface(_token);
-        challengeFactory = ChallengeFactoryInterface(_challengeFactory);
         parameterizer = Parameterizer(_parameterizer);
         name = _name;
         challengeNonce = INITIAL_CHALLENGE_NONCE;

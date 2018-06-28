@@ -79,11 +79,11 @@ contract PLCRVotingChallenge is ChallengeInterface {
     /**
     @dev Initializes voteQuorum, commitDuration, revealDuration, and pollNonce in addition to token contract and trusted mapping
     */
-    function PLCRVotingChallenge(address _challenger, address _listingOwner, Registry _registry, PLCRVoting _voting, Parameterizer _parameterizer) public {
+    function PLCRVotingChallenge(address _challenger, address _listingOwner, Registry _registry, Parameterizer _parameterizer) public {
         challenger = _challenger;
         listingOwner = _listingOwner;
         registry = _registry;
-        voting = _voting;
+        voting = _parameterizer.voting();
 
         commitStageLen  = _parameterizer.get("commitStageLen");
         revealStageLen  = _parameterizer.get("revealStageLen");
