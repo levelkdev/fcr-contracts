@@ -89,8 +89,10 @@ contract PLCRVotingChallenge is ChallengeInterface {
         revealStageLen  = _parameterizer.get("revealStageLen");
         voteQuorum      = _parameterizer.get("voteQuorum");
         challengerStake = _parameterizer.get("minDeposit");
-        rewardPool      = ((100 - _parameterizer.get("dispensationPct")) * challengerStake) / 100;
         pollID          = voting.startPoll( voteQuorum, commitStageLen, revealStageLen);
+
+        uint oneHundred = 100; // Kludge that we need to use SafeMath
+        rewardPool      = ((oneHundred.sub(_parameterizer.get("dispensationPct"))).mul(challengerStake)).div(100);
     }
 
     // =================
