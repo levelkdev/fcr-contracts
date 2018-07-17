@@ -396,4 +396,3 @@ contract Parameterizer {
         params[keccak256(_name)] = _value;
     }
 }
-
