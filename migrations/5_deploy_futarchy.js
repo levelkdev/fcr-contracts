@@ -1,6 +1,6 @@
 /* global artifacts */
 
-const Token = artifacts.require('tokens/eip20/EIP20.sol');
+const Token = artifacts.require('FaucetToken.sol');
 const Math = artifacts.require('@gnosis.pm/gnosis-core-contracts/Math')
 const CategoricalEvent = artifacts.require('CategoricalEvent')
 const ScalarEvent = artifacts.require('ScalarEvent')

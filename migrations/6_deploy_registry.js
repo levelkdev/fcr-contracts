@@ -1,6 +1,6 @@
 /* global artifacts */
 
-const Token = artifacts.require('tokens/eip20/EIP20.sol')
+const Token = artifacts.require('FaucetToken.sol')
 const Registry = artifacts.require('Registry.sol')
 const Parameterizer = artifacts.require('Parameterizer.sol')
 const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory.sol')
