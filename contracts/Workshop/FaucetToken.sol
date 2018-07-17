@@ -4,7 +4,7 @@ import "tokens/eip20/EIP20.sol";
 
 contract FaucetToken is EIP20 {
 
-  event Mint(address indexed to, uint256 amount);
+  event Mint(address indexed to, uint256 amount, string data);
 
   uint public constant MINTING_AMOUNT = 100 * 10 ** 18;
 
@@ -28,16 +28,16 @@ contract FaucetToken is EIP20 {
   ) {}
 
   function gimmeTokens(
-    uint256 _amount
+    string _data
   )
     canMint
     public
     returns (bool)
   {
     totalSupply = totalSupply + MINTING_AMOUNT;
-    balances[msg.sender] = balances[msg.sender] + _amount;
-    emit Mint(msg.sender, _amount);
-    emit Transfer(address(0), msg.sender, _amount);
+    balances[msg.sender] = balances[msg.sender] + MINTING_AMOUNT;
+    emit Mint(msg.sender, MINTING_AMOUNT, _data);
+    emit Transfer(address(0), msg.sender, MINTING_AMOUNT);
     return true;
   }
 

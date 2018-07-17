@@ -6,7 +6,6 @@ const fs = require('fs');
 const config = JSON.parse(fs.readFileSync('../conf/config.json'));
 
 module.exports = (deployer, network) => {
-  console.log('TOKEN: ', config.token)
   // deploy faucet token for the workshop
   deployer.deploy(
     FaucetToken,

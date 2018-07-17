@@ -18,7 +18,7 @@
     "decimals": "18",
     "name": "Futarchy Curated Registry",
     "symbol": "FCR",
-    "supply": "1000000000000000000000000000",
+    "supply": "0",
     "tokenHolders": [
       { "address": "0xE3717CCDfbE15649F44FF27a81BE38d4648E1Ef0",
         "amount": "100000000000000000000000000" },
