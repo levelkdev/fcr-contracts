@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 import '@gnosis.pm/gnosis-core-contracts/contracts/Oracles/FutarchyOracleFactory.sol';
 import './Oracles/DutchExchangeMock.sol';
-import './Oracles/CentralizedTimedOracleFactory.sol';
+import './Oracles/ScalarPriceOracleFactory.sol';
 import "./ChallengeFactoryInterface.sol";
 import "./FutarchyChallenge.sol";
 import "zeppelin/math/SafeMath.sol";
@@ -16,14 +16,14 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
   // STATE:
   // -------
   // GLOBAL VARIABLES
-  address public token;              // Address of the TCR's intrinsic ERC20 token
-  address public comparatorToken;    // Address of token to which TCR's intrinsic token will be compared
-  uint public stakeAmount;           // Amount that must be staked to initiate a Challenge
-  uint public tradingPeriod;         // Duration for open trading on futarchy prediction markets
-  uint public timeToPriceResolution; // Duration from start of prediction markets until date of final price resolution
+  address public token;                 // Address of the TCR's intrinsic ERC20 token
+  address public comparatorToken;       // Address of token to which TCR's intrinsic token will be compared
+  uint public stakeAmount;              // Amount that must be staked to initiate a Challenge
+  uint public tradingPeriod;            // Duration for open trading on futarchy prediction markets
+  uint public timeToPriceResolution;    // Duration from start of prediction markets until date of final price resolution
 
   FutarchyOracleFactory public futarchyOracleFactory;                  // Factory for creating Futarchy Oracles
-  CentralizedTimedOracleFactory public centralizedTimedOracleFactory;  // Factory for creating Oracles to resolve Futarchy's scalar prediction markets
+  ScalarPriceOracleFactory public scalarPriceOracleFactory;  // Factory for creating Oracles to resolve Futarchy's scalar prediction markets
   LMSRMarketMaker public lmsrMarketMaker;                              // LMSR Market Maker for futarchy's prediction markets
   DutchExchangeMock public dutchExchange;                              // Dutch Exchange contract to retrive token prices
 
@@ -39,7 +39,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
   /// @param _tradingPeriod            Duration for open trading on futarchy prediction markets before futarchy resolution
   /// @param _timeToPriceResolution    Duration from start of prediction markets until date of final price resolution
   /// @param _futarchyOracleFactory    Factory for creating Futarchy Oracles
-  /// @param _centralizedTimedOracleFactory Factory for creating Oracles to resolve Futarchy's scalar prediction markets
+  /// @param _scalarPriceOracleFactory Factory for creating Oracles to resolve Futarchy's scalar prediction markets
   /// @param _lmsrMarketMaker          LMSR Market Maker for futarchy's prediction markets
   function FutarchyChallengeFactory(
     address _tokenAddr,
@@ -48,7 +48,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
     uint _tradingPeriod,
     uint _timeToPriceResolution,
     FutarchyOracleFactory _futarchyOracleFactory,
-    CentralizedTimedOracleFactory _centralizedTimedOracleFactory,
+    ScalarPriceOracleFactory _scalarPriceOracleFactory,
     LMSRMarketMaker _lmsrMarketMaker,
     DutchExchangeMock _dutchExchange
   ) public {
@@ -59,7 +59,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
     timeToPriceResolution = _timeToPriceResolution;
 
     futarchyOracleFactory         = _futarchyOracleFactory;
-    centralizedTimedOracleFactory = _centralizedTimedOracleFactory;
+    scalarPriceOracleFactory = _scalarPriceOracleFactory;
     lmsrMarketMaker               = _lmsrMarketMaker;
     dutchExchange                 = _dutchExchange;
   }
@@ -75,6 +75,12 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
     int upperBound;
     int lowerBound;
     (upperBound, lowerBound) = determinePriceBounds();
+
+    uint resolutionDate = now + timeToPriceResolution;
+    ScalarPriceOracle scalarPriceOracle = scalarPriceOracleFactory.createScalarPriceOracle(
+      resolutionDate
+    );
+
     return new FutarchyChallenge(
       token,
       _challenger,
@@ -85,7 +91,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
       upperBound,
       lowerBound,
       futarchyOracleFactory,
-      centralizedTimedOracleFactory,
+      scalarPriceOracle,
       lmsrMarketMaker
     );
   }

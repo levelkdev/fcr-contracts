@@ -12,7 +12,7 @@ const StandardMarketWithPriceLoggerFactory = artifacts.require('StandardMarketWi
 const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory')
 const FutarchyOracleFactory = artifacts.require('FutarchyOracleFactory')
 const FutarchyOracle = artifacts.require('FutarchyOracle')
-const CentralizedTimedOracleFactory = artifacts.require('CentralizedTimedOracleFactory')
+const ScalarPriceOracleFactory = artifacts.require('ScalarPriceOracleFactory')
 const EventFactory = artifacts.require('EventFactory')
 const LMSRMarketMaker = artifacts.require('LMSRMarketMaker')
 const EtherToken = artifacts.require('EtherToken')
@@ -27,6 +27,7 @@ const timeToPriceResolution = 60 * 60 * 24 * 7 // a week
 const futarchyFundingAmount = paramConfig.minDeposit * 10 ** 18
 
 module.exports = (deployer, network) => {
+  const dutchExchange = network == 'rinkeby' ? '0x4e69969D9270fF55fc7c5043B074d4e45F795587' : DutchExchange.address
   return deployer.then(async () => {
     await deployer.deploy(Math)
     deployer.link(Math, [EtherToken, StandardMarketFactory, StandardMarketWithPriceLoggerFactory, FutarchyChallengeFactory, EventFactory, LMSRMarketMaker, CategoricalEvent, ScalarEvent, OutcomeToken])
@@ -38,7 +39,7 @@ module.exports = (deployer, network) => {
     await deployer.deploy(StandardMarketFactory, StandardMarket.address)
     await deployer.deploy(StandardMarketWithPriceLoggerFactory, StandardMarketWithPriceLogger.address)
 
-    await deployer.deploy(CentralizedTimedOracleFactory)
+    await deployer.deploy(ScalarPriceOracleFactory, Token.address, EtherToken.address, dutchExchange)
     await deployer.deploy(LMSRMarketMaker)
     await deployer.deploy(EtherToken)
     await deployer.deploy(FutarchyOracle)
@@ -52,9 +53,9 @@ module.exports = (deployer, network) => {
       tradingPeriod,
       timeToPriceResolution,
       FutarchyOracleFactory.address,
-      CentralizedTimedOracleFactory.address,
+      ScalarPriceOracleFactory.address,
       LMSRMarketMaker.address,
-      network == 'rinkeby' ? '0x4e69969D9270fF55fc7c5043B074d4e45F795587' : DutchExchange.address
+      dutchExchange
     )
 
   }).catch((err) => { throw err })
