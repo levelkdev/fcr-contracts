@@ -18,8 +18,8 @@ const StandardMarketWithPriceLogger = artifacts.require('StandardMarketWithPrice
 const StandardMarketWithPriceLoggerFactory = artifacts.require('StandardMarketWithPriceLoggerFactory')
 const LMSRMarketMaker = artifacts.require('LMSRMarketMaker')
 const FutarchyOracleFactory = artifacts.require('FutarchyOracleFactory')
-const CentralizedTimedOracleFactory = artifacts.require('CentralizedTimedOracleFactory')
-const CentralizedTimedOracle = artifacts.require('CentralizedTimedOracle')
+const ScalarPriceOracleFactory = artifacts.require('ScalarPriceOracleFactory')
+const ScalarPriceOracle = artifacts.require('ScalarPriceOracle')
 const FutarchyChallenge = artifacts.require('FutarchyChallenge')
 const FutarchyOracle = artifacts.require('FutarchyOracle')
 const DutchExchange = artifacts.require('DutchExchangeMock')
@@ -58,7 +58,7 @@ contract('simulate TCR apply/futarchyChallenge/resolve', (accounts) => {
       const outcomeToken          = await OutcomeToken.deployed()
       const eventFactory          = await EventFactory.deployed()
       const marketFactory         = await StandardMarketWithPriceLoggerFactory.deployed()
-      const centralizedTimedOracleFactory = await CentralizedTimedOracleFactory.new()
+      const scalarPriceOracleFactory = await ScalarPriceOracleFactory.new(token.address, etherToken.address, dutchExchange.address)
       const standardMarketFactory = await StandardMarketFactory.deployed()
       const futarchyOracleFactory = await FutarchyOracleFactory.deployed()
       const lmsrMarketMaker = await LMSRMarketMaker.new()
@@ -73,7 +73,7 @@ contract('simulate TCR apply/futarchyChallenge/resolve', (accounts) => {
         tradingPeriod,
         timeToPriceResolution,
         futarchyOracleFactory.address,
-        centralizedTimedOracleFactory.address,
+        scalarPriceOracleFactory.address,
         lmsrMarketMaker.address,
         dutchExchange.address
       )
@@ -169,8 +169,11 @@ contract('simulate TCR apply/futarchyChallenge/resolve', (accounts) => {
 
       console.log('----------------------- Execute setOutcome -----------------------')
       increaseTime(tradingPeriod + 1000)
+      await console.log('---------futarchy oracle')
       await futarchyOracle.setOutcome()
+      await console.log('--------categorical oracle')
       await categoricalEvent.setOutcome()
+
       console.log('')
 
       const challengePassed = await challenge.passed()
@@ -209,14 +212,15 @@ contract('simulate TCR apply/futarchyChallenge/resolve', (accounts) => {
       const scalarDeniedEvent = await ScalarEvent.at(scalarDeniedEventAddr)
       console.log('scalarDenied')
 
+      const scalarDeniedEventAddr = await marketForDenied.eventContract()
+      const scalarDeniedEvent = await ScalarEvent.at(scalarDeniedEventAddr)
+
       const scalarOracleAddr = await scalarAcceptedEvent.oracle()
-      const scalarOracle = await CentralizedTimedOracle.at(scalarOracleAddr)
+      const scalarOracle = await ScalarPriceOracle.at(scalarOracleAddr)
 
       const outcomePrice = (lowerBound + (upperBound - lowerBound) * 0.75) * 10 ** 18
 
-      console.log("outcomePrice!! ", outcomePrice / 10 **18)
-
-      await challenge.setScalarOutcome(scalarOracleAddr, outcomePrice)
+      await challenge.setScalarOutcome()
       await scalarAcceptedEvent.setOutcome()
       await scalarDeniedEvent.setOutcome()
       await logTokenBalance('Accepted Token', acceptedToken, [buyer1, buyer2])
