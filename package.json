@@ -6,11 +6,11 @@
     "install": "truffle install",
     "compile": "truffle compile",
     "coverage": "solidity-coverage",
-    "deploy-rinkeby": "truffle migrate --network rinkeby",
+    "deploy-rinkeby": "truffle migrate --reset --network rinkeby",
     "deploy-mainnet": "truffle migrate --network mainnet",
     "test:truffle": "run-with-testrpc -l 20000000 'truffle test --network testing'",
     "test": "truffle test",
-    "migrate": "truffle migrate --reset",
+    "migrate": "truffle migrate",
     "fix": "eslint --fix",
     "lint": "eslint",
     "ganache": "scripts/runGanache.sh"

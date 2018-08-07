@@ -34,7 +34,7 @@ const utils = require('../utils.js')
 
 contract('simulate TCR apply/futarchyChallenge/resolve', (accounts) => {
 
-    it.only('...', async () => {
+    it('...', async () => {
       const [creator, applicant, challenger, voterFor, voterAgainst, buyer1, buyer2] = accounts
       const tradingPeriod = 60 * 60
       const futarchyFundingAmount = paramConfig.minDeposit * 10 ** 18

@@ -13,7 +13,7 @@
 	},
   "name": "The Futarchy Registry",
   "token": {
-    "address": "0x337cDDa6D41A327c5ad456166CCB781a9722AFf6",
+    "address": "0x337cDDa6D41A327c5ad456166CCB781a9722AFf3",
     "deployToken": true,
     "decimals": "18",
     "name": "Futarchy Curated Registry",
