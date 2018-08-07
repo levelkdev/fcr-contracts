@@ -17,11 +17,10 @@ const TokenRDN = artifacts.require('TokenRDN')
 const TokenOMG = artifacts.require('TokenOMG')
 const TokenOWL = artifacts.require('TokenOWL')
 const TokenOWLProxy = artifacts.require('TokenOWLProxy')
-
+const OWLAirdrop = artifacts.require('OWLAirdrop')
 const TokenMGN = artifacts.require('TokenFRT')
 const Medianizer = artifacts.require('Medianizer')
 const Proxy = artifacts.require('Proxy')
-const OWLAirdrop = artifacts.require('OWLAirdrop')
 // ETH price as reported by MakerDAO with 18 decimal places
 let currentETHPrice = (1100 * (10 ** 18))
 
@@ -33,7 +32,8 @@ const getTime = new Promise((resolve, reject) => {
     })
 
 module.exports = function deploy(deployer, network, accounts) {
-  if (network == 'testing' || network == 'development') {
+
+  if (network == 'testing') {
       deployer.deploy(Math)
       // Linking
       .then(() => deployer.link(Math, [StandardToken, EtherToken, TokenGNO, TokenMGN, TokenOWL, TokenOWLProxy, OWLAirdrop]))
