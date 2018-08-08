@@ -8,7 +8,6 @@ const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory.sol
 module.exports = (deployer, network, accounts) => {
   return deployer.then(async () => {
     const token = await Token.deployed()
-    console.log(token.address, "   !!!!")
     await deployer.deploy(
       Registry,
       token.address,
