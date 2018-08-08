@@ -6,6 +6,7 @@
     "install": "truffle install",
     "compile": "truffle compile",
     "coverage": "solidity-coverage",
+    "deploy-local": "truffle migrate --reset",
     "deploy-rinkeby": "truffle migrate --reset --network rinkeby",
     "deploy-mainnet": "truffle migrate --network mainnet",
     "test:truffle": "run-with-testrpc -l 20000000 'truffle test --network testing'",
@@ -18,7 +19,7 @@
   "author": "Irene Lin <irene.lin@consensys.net>, Mira Zeitlin <miranda.zeitlin@consensys.net>, Yorke Rhodes <yorke.rhodesiv@consensys.net>",
   "license": "ISC",
   "dependencies": {
-    "@gnosis.pm/dx-contracts": "^0.9.0",
+    "@gnosis.pm/dx-contracts": "git://git@github.com:levelkdev/dx-contracts#e400f1c2acbec3b3952bc2d92187b93752a38b7d",
     "@gnosis.pm/gnosis-core-contracts": "git://git@github.com:gnosis/pm-contracts#dbd6ecd0e65ba91ba5f0ef91d3359d9da92f0873",
     "babel-cli": "^6.24.1",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
