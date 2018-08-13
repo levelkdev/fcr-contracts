@@ -1,9 +1,8 @@
 pragma solidity ^0.4.24;
 import '@gnosis.pm/gnosis-core-contracts/contracts/Oracles/FutarchyOracleFactory.sol';
-import './Oracles/ScalarPriceOracleFactory.sol';
 import '@gnosis.pm/gnosis-core-contracts/contracts/MarketMakers/LMSRMarketMaker.sol';
-import '@gnosis.pm/gnosis-core-contracts/contracts/Tokens/Token.sol';
-import "zeppelin/math/SafeMath.sol";
+import '@gnosis.pm/util-contracts/contracts/Token.sol';
+import "./Oracles/ScalarPriceOracle.sol";
 import "./ChallengeInterface.sol";
 
 contract  FutarchyChallenge is ChallengeInterface {

@@ -11,6 +11,7 @@ module.exports = async function deploy(deployer, network, accounts) {
 
   if (network == 'testing' || network == 'development') {
 
+    logDxContractMigration('2_migrate_dependencies')
     await dxMigrateDependencies({
       artifacts,
       deployer,
@@ -19,6 +20,7 @@ module.exports = async function deploy(deployer, network, accounts) {
       web3
     })
 
+    logDxContractMigration('3_deploy_price_feed')
     await dxDeployPriceFeed({
       artifacts,
       deployer,
@@ -29,6 +31,7 @@ module.exports = async function deploy(deployer, network, accounts) {
       feedExpirePeriodDays: process.env.FEED_EXPIRE_PERIOD_DAYS
     })
 
+    logDxContractMigration('4_deploy_FRT')
     await deployFrt({
       artifacts,
       deployer,
@@ -36,6 +39,7 @@ module.exports = async function deploy(deployer, network, accounts) {
       accounts
     })
 
+    logDxContractMigration('5_deploy_DX')
     await deployDx({
       artifacts,
       deployer,
@@ -43,6 +47,7 @@ module.exports = async function deploy(deployer, network, accounts) {
       accounts
     })
 
+    logDxContractMigration('6_setup_DX')
     await setupDx({
       artifacts,
       deployer,
@@ -52,6 +57,7 @@ module.exports = async function deploy(deployer, network, accounts) {
       thresholdAuctionStartUsd: process.env.THRESHOLD_AUCTION_START_USD
     })
 
+    logDxContractMigration('7_set_DX_as_FRT_minter')
     await setDxAsFrtMinter({
       artifacts,
       deployer,
@@ -60,4 +66,8 @@ module.exports = async function deploy(deployer, network, accounts) {
     })
 
   }
+}
+
+function logDxContractMigration (msg) {
+  console.log(`Running dx-contract migration: ${msg}`)
 }

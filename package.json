@@ -19,8 +19,9 @@
   "author": "Irene Lin <irene.lin@consensys.net>, Mira Zeitlin <miranda.zeitlin@consensys.net>, Yorke Rhodes <yorke.rhodesiv@consensys.net>",
   "license": "ISC",
   "dependencies": {
-    "@gnosis.pm/dx-contracts": "git://git@github.com:levelkdev/dx-contracts#e400f1c2acbec3b3952bc2d92187b93752a38b7d",
-    "@gnosis.pm/gnosis-core-contracts": "git://git@github.com:gnosis/pm-contracts#dbd6ecd0e65ba91ba5f0ef91d3359d9da92f0873",
+    "@gnosis.pm/dx-contracts": "git://git@github.com:levelkdev/dx-contracts#5ed2b07c822bc3e446ade107e723c451349f9f68",
+    "@gnosis.pm/gnosis-core-contracts": "git://git@github.com:levelkdev/pm-contracts#3295f73faa7a84ad17ffeadb0b247fbcecded8df",
+    "openzeppelin-solidity": "github:gnosis/openzeppelin-solidity#fix-signed-safemath",
     "babel-cli": "^6.24.1",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
     "babel-plugin-transform-runtime": "^6.23.0",
