@@ -1,10 +1,9 @@
 pragma solidity ^0.4.24;
 import '@gnosis.pm/gnosis-core-contracts/contracts/Oracles/FutarchyOracleFactory.sol';
-import './Oracles/DutchExchangeMock.sol';
 import './Oracles/ScalarPriceOracleFactory.sol';
 import "./ChallengeFactoryInterface.sol";
 import "./FutarchyChallenge.sol";
-import "zeppelin/math/SafeMath.sol";
+import "../IDutchExchange.sol";
 
 contract FutarchyChallengeFactory is ChallengeFactoryInterface {
   // ------
@@ -25,7 +24,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
   FutarchyOracleFactory public futarchyOracleFactory;                  // Factory for creating Futarchy Oracles
   ScalarPriceOracleFactory public scalarPriceOracleFactory;  // Factory for creating Oracles to resolve Futarchy's scalar prediction markets
   LMSRMarketMaker public lmsrMarketMaker;                              // LMSR Market Maker for futarchy's prediction markets
-  DutchExchangeMock public dutchExchange;                              // Dutch Exchange contract to retrive token prices
+  IDutchExchange public dutchExchange;                              // Dutch Exchange contract to retrive token prices
 
   uint NUM_PRICE_POINTS = 5;  // number of past price points to reference for price average when determining TCR token value
 
@@ -50,7 +49,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
     FutarchyOracleFactory _futarchyOracleFactory,
     ScalarPriceOracleFactory _scalarPriceOracleFactory,
     LMSRMarketMaker _lmsrMarketMaker,
-    DutchExchangeMock _dutchExchange
+    address _dutchExchange
   ) public {
     token                 = _tokenAddr;
     comparatorToken       = _comparatorToken;
@@ -61,7 +60,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
     futarchyOracleFactory         = _futarchyOracleFactory;
     scalarPriceOracleFactory = _scalarPriceOracleFactory;
     lmsrMarketMaker               = _lmsrMarketMaker;
-    dutchExchange                 = _dutchExchange;
+    dutchExchange                 = IDutchExchange(_dutchExchange);
   }
 
   // --------------------

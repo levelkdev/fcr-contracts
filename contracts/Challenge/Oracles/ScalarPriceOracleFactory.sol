@@ -1,5 +1,5 @@
 pragma solidity ^0.4.15;
-import "../Oracles/ScalarPriceOracle.sol";
+import "./ScalarPriceOracle.sol";
 
 contract ScalarPriceOracleFactory {
 

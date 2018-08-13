@@ -1,12 +1,8 @@
 pragma solidity ^0.4.24;
 
-import './TimedOracle.sol';
 import '@gnosis.pm/gnosis-core-contracts/contracts/Oracles/Oracle.sol';
-import './DutchExchangeMock.sol';
+import "../../IDutchExchange.sol";
 
-
-//TODO: Make TimedOracle AND PriceOracle separately to PR for Gnosis
-// right now this is a combination of centralized and Timed oracle
 contract ScalarPriceOracle is Oracle {
 
   event OutcomeAssignment(int outcome);
@@ -16,7 +12,7 @@ contract ScalarPriceOracle is Oracle {
   uint public resolutionDate;
   address public token;
   address public comparatorToken;
-  DutchExchangeMock public dutchExchange;
+  IDutchExchange public dutchExchange;
 
   function ScalarPriceOracle(
     uint _resolutionDate,
@@ -26,7 +22,7 @@ contract ScalarPriceOracle is Oracle {
   ) public
   {
     resolutionDate = _resolutionDate;
-    dutchExchange = DutchExchangeMock(_dutchExchange);
+    dutchExchange = IDutchExchange(_dutchExchange);
     token = _token;
     comparatorToken = _comparatorToken;
 

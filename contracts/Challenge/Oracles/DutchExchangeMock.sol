@@ -1,14 +1,15 @@
 pragma solidity ^0.4.24;
 
-import '@gnosis.pm/dx-contracts/contracts/Tokens/TokenFRT.sol';
+import '@gnosis.pm/dx-contracts/contracts/TokenFRT.sol';
 import "@gnosis.pm/owl-token/contracts/TokenOWL.sol";
 import '@gnosis.pm/dx-contracts/contracts/Oracle/PriceOracleInterface.sol';
+import "../../IDutchExchange.sol";
 
 /// @title Dutch Exchange - exchange token pairs with the clever mechanism of the dutch auction
 /// @author Alex Herrmann - <alex@gnosis.pm>
 /// @author Dominik Teiml - <dominik@gnosis.pm>
 
-contract DutchExchangeMock {
+contract DutchExchangeMock is IDutchExchange {
 
     // The price is a rational number, so we need a concept of a fraction
     struct fraction {
