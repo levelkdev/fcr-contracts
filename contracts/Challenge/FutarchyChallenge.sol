@@ -1,7 +1,6 @@
 pragma solidity ^0.4.24;
 import '@gnosis.pm/gnosis-core-contracts/contracts/Oracles/FutarchyOracleFactory.sol';
 import '@gnosis.pm/gnosis-core-contracts/contracts/MarketMakers/LMSRMarketMaker.sol';
-import '@gnosis.pm/util-contracts/contracts/Token.sol';
 import "./Oracles/ScalarPriceOracle.sol";
 import "./ChallengeInterface.sol";
 
@@ -30,8 +29,12 @@ contract  FutarchyChallenge is ChallengeInterface {
   FutarchyOracleFactory public futarchyOracleFactory;        // Factory to create FutarchyOracle
   ScalarPriceOracle public scalarPriceOracle;                // Oracle to resolve scalar prediction markets
   LMSRMarketMaker public lmsrMarketMaker;                    // MarketMaker for scalar prediction markets
+<<<<<<< HEAD
   Token public token;                                        // Address of the TCR's intrinsic ERC20 token
   address public registry;                                  // Address of TCR
+=======
+  ERC20 public token;                                        // Address of the TCR's intrinsic ERC20 token
+>>>>>>> use zeppelin ERC20 instead of Token contract
   uint public winningMarketIndex;                            // Index of scalar prediction market with greatest average price for long token
 
 
@@ -64,7 +67,7 @@ contract  FutarchyChallenge is ChallengeInterface {
   ) public {
     challenger = _challenger;
     listingOwner = _listingOwner;
-    token = Token(_tokenAddr);
+    token = ERC20(_tokenAddr);
     registry = _registryAddr;
     stakeAmount = _stakeAmount;
     tradingPeriod = _tradingPeriod;

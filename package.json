@@ -20,7 +20,7 @@
   "license": "ISC",
   "dependencies": {
     "@gnosis.pm/dx-contracts": "git://git@github.com:levelkdev/dx-contracts#5ed2b07c822bc3e446ade107e723c451349f9f68",
-    "@gnosis.pm/gnosis-core-contracts": "git://git@github.com:levelkdev/pm-contracts#3295f73faa7a84ad17ffeadb0b247fbcecded8df",
+    "@gnosis.pm/gnosis-core-contracts": "git://git@github.com:levelkdev/pm-contracts#0eaec24958b2debd79b1b7d2c554604dcd8f0577",
     "openzeppelin-solidity": "github:gnosis/openzeppelin-solidity#fix-signed-safemath",
     "babel-cli": "^6.24.1",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
