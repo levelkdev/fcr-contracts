@@ -28,8 +28,7 @@ contract('Registry', (accounts) => {
 
     it('should whitelist an array of 1 listing', async () => {
       const listing = utils.getListingHash('whitelistmepls.io');
-      await utils.as(applicant, registry.apply, listing, minDeposit, '');
-
+      await utils.as(applicant, registry.apply, listing, minDeposit.toNumber(), '');
       await utils.increaseTime(paramConfig.applyStageLength + 1);
 
       const listings = [listing];
@@ -72,7 +71,7 @@ contract('Registry', (accounts) => {
       const listing = utils.getListingHash('dontwhitelist.io');
 
       await utils.as(applicant, registry.apply, listing, minDeposit, '');
-      await utils.as(challenger, registry.challenge, listing, '');
+      await utils.as(challenger, registry.createChallenge, listing, '');
 
       const listings = [listing];
       try {
@@ -86,13 +85,11 @@ contract('Registry', (accounts) => {
 
     it('should not whitelist an array of 1 listing that failed a challenge', async () => {
       const listing = utils.getListingHash('dontwhitelist.net');
-
       await utils.as(applicant, registry.apply, listing, minDeposit, '');
-      await utils.as(challenger, registry.challenge, listing, '');
+      await utils.as(challenger, registry.createChallenge, listing, '');
 
       const plcrComplete = paramConfig.revealStageLength + paramConfig.commitStageLength + 1;
       await utils.increaseTime(plcrComplete);
-
       const listings = [listing];
       await registry.updateStatuses(listings);
       const result = await registry.isWhitelisted(listing);
@@ -113,4 +110,3 @@ contract('Registry', (accounts) => {
     });
   });
 });
-

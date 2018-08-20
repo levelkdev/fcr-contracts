@@ -18,15 +18,12 @@ contract('Parameterizer', (accounts) => {
       parameterizer = paramProxy;
       token = tokenInstance;
       await utils.approveProxies(accounts, token, false, parameterizer, false);
-      console.log('done before')
     });
 
-    it.only('should true if a proposal passed its application stage with no challenge', async () => {
-      console.log('enterTest')
+    it('should true if a proposal passed its application stage with no challenge', async () => {
       const propID = await utils.proposeReparamAndGetPropID('voteQuorum', '51', proposer, parameterizer);
-      console.log('inside1')
+
       await utils.increaseTime(paramConfig.pCommitStageLength + 1);
-      console.log('inside2')
       await utils.increaseTime(paramConfig.pRevealStageLength + 1);
 
       const result = await parameterizer.canBeSet(propID);

@@ -7,8 +7,8 @@ const EthRPC = require('ethjs-rpc');
 const abi = require('ethereumjs-abi');
 const fs = require('fs');
 
-const ethRPC = new EthRPC(new HttpProvider('http://localhost:7545'));
-const ethQuery = new Eth(new HttpProvider('http://localhost:7545'));
+const ethRPC = new EthRPC(new HttpProvider('http://localhost:8545'));
+const ethQuery = new Eth(new HttpProvider('http://localhost:8545'));
 
 const PLCRVoting = artifacts.require('PLCRVoting.sol');
 const FutarchyChallenge = artifacts.require('FutarchyChallenge.sol');
@@ -58,13 +58,54 @@ const utils = {
     } = registryReceipt.logs[0].args;
 
     const tokenInstance = Token.at(token);
+    const paramProxy = await Parameterizer.at(parameterizer);
+    const registryProxy = await Registry.at(registry);
+    const plcr = await paramProxy.voting.call();
+    const votingProxy = PLCRVoting.at(plcr);
+
+    const proxies = {
+      tokenInstance,
+      votingProxy,
+      paramProxy,
+      registryProxy,
+    };
+    return proxies;
+  },
+
+  getProxiesBYO: async (token) => {
+    const registryFactory = await RegistryFactory.deployed();
+    const challengeFactory = await FutarchyChallengeFactory.deployed();
+    const registryReceipt = await registryFactory.newRegistryBYOToken(
+      token,
+      [
+        paramConfig.minDeposit,
+        paramConfig.pMinDeposit,
+        paramConfig.applyStageLength,
+        paramConfig.pApplyStageLength,
+        paramConfig.commitStageLength,
+        paramConfig.pCommitStageLength,
+        paramConfig.revealStageLength,
+        paramConfig.pRevealStageLength,
+        paramConfig.dispensationPct,
+        paramConfig.pDispensationPct,
+        paramConfig.voteQuorum,
+        paramConfig.pVoteQuorum,
+      ],
+      'Futarchy Curated Registry',
+      challengeFactory.address
+    );
+
+    const {
+      parameterizer,
+      registry
+    } = registryReceipt.logs[0].args;
+
     const paramProxy = Parameterizer.at(parameterizer);
     const registryProxy = Registry.at(registry);
     const plcr = await paramProxy.voting.call();
     const votingProxy = PLCRVoting.at(plcr);
 
     const proxies = {
-      tokenInstance,
       votingProxy,
       paramProxy,
       registryProxy,
@@ -86,6 +127,10 @@ const utils = {
       }
     }))
   ),
+
+  tradeOnChallenge: async (challenge) => {
+
+  },
 
   getVoting: async () => {
     const plcrVotingChallengeFactory = await PLCRVotingChallengeFactory.deployed();
@@ -131,7 +176,7 @@ const utils = {
     await utils.as(actor, registry.updateStatus, domain);
   },
 
-  as: (actor, fn, ...args) => {
+  as: async (actor, fn, ...args) => {
     function detectSendObject(potentialSendObj) {
       function hasOwnProperty(obj, prop) {
         const proto = obj.constructor.prototype;
@@ -152,7 +197,8 @@ const utils = {
     }
     detectSendObject(args[args.length - 1]);
     const sendObject = { from: actor };
-    return fn(...args, sendObject);
+    let receipt = await fn(...args, sendObject);
+    return receipt;
   },
 
   isEVMException: err => (

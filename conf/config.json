@@ -9,14 +9,16 @@
     "revealStageLength": 600,
     "pRevealStageLength": 1200,
     "dispensationPct": 50,
-    "pDispensationPct": 50
+    "pDispensationPct": 50,
+    "voteQuorum": 50,
+    "pVoteQuorum": 50
 	},
-  "name": "The Futarchy Registry",
+  "name": "Futarchy Curated Registry",
   "token": {
     "address": "0x337cDDa6D41A327c5ad456166CCB781a9722AFf3",
     "deployToken": true,
     "decimals": "18",
-    "name": "Futarchy Curated Registry",
+    "name": "Futarchy Curated Registry Coin",
     "symbol": "FCR",
     "supply": "1000000000000000000000000000",
     "tokenHolders": [
