@@ -11,13 +11,13 @@ const ethRPC = new EthRPC(new HttpProvider('http://localhost:7545'));
 const ethQuery = new Eth(new HttpProvider('http://localhost:7545'));
 
 const PLCRVoting = artifacts.require('PLCRVoting.sol');
-const PLCRVotingChallenge = artifacts.require('PLCRVotingChallenge.sol');
-const PLCRVotingChallengeFactory = artifacts.require('PLCRVotingChallengeFactory.sol');
+const FutarchyChallenge = artifacts.require('FutarchyChallenge.sol');
+const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory.sol');
 const Parameterizer = artifacts.require('Parameterizer.sol');
 const Registry = artifacts.require('Registry.sol');
 const Token = artifacts.require('EIP20.sol');
 
-const PLCRVotingRegistryFactory = artifacts.require('PLCRVotingRegistryFactory.sol');
+const RegistryFactory = artifacts.require('RegistryFactory.sol');
 
 const config = JSON.parse(fs.readFileSync('./conf/config.json'));
 const paramConfig = config.paramDefaults;
@@ -26,7 +26,8 @@ const BN = small => new Eth.BN(small.toString(10), 10);
 
 const utils = {
   getProxies: async () => {
-    const registryFactory = await PLCRVotingRegistryFactory.deployed();
+    const registryFactory = await RegistryFactory.deployed();
+    const challengeFactory = await FutarchyChallengeFactory.deployed();
     const registryReceipt = await registryFactory.newRegistryWithToken(
       config.token.supply,
       config.token.name,
@@ -46,7 +47,8 @@ const utils = {
         paramConfig.voteQuorum,
         paramConfig.pVoteQuorum,
       ],
-      'The TestChain Registry',
+      'Futarchy Curated Registry',
+      challengeFactory.address
     );
 
     const {
@@ -58,7 +60,6 @@ const utils = {
     const tokenInstance = Token.at(token);
     const paramProxy = Parameterizer.at(parameterizer);
     const registryProxy = Registry.at(registry);
-
     const plcr = await paramProxy.voting.call();
     const votingProxy = PLCRVoting.at(plcr);
 
@@ -97,10 +98,11 @@ const utils = {
       method: 'evm_increaseTime',
       params: [seconds],
     }, (err) => {
-      if (err) reject(err);
+      if (err) {console.log('err! ', err); reject(err)};
       resolve();
     }))
-      .then(() => new Promise((resolve, reject) => ethRPC.sendAsync({
+      .then(() =>
+        new Promise((resolve, reject) => ethRPC.sendAsync({
         method: 'evm_mine',
         params: [],
       }, (err) => {
