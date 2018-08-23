@@ -6,19 +6,19 @@ const Parameterizer = artifacts.require('Parameterizer.sol')
 const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory.sol')
 
 module.exports = (deployer, network, accounts) => {
-  // return deployer.then(async () => {
-  //   const token = await Token.deployed()
-  //   await deployer.deploy(
-  //     Registry,
-  //     token.address,
-  //     FutarchyChallengeFactory.address,
-  //     Parameterizer.address,
-  //     'best registry'
-  //   )
-  //   if (network === 'development' || network === 'test' || network === 'coverage') {
-  //     await approveRegistryFor(accounts);
-  //   }
-  // }).catch((err) => { throw err })
+  return deployer.then(async () => {
+    const token = await Token.deployed()
+    await deployer.deploy(
+      Registry,
+      token.address,
+      FutarchyChallengeFactory.address,
+      Parameterizer.address,
+      'best registry'
+    )
+    if (network === 'development' || network === 'test' || network === 'coverage') {
+      await approveRegistryFor(accounts);
+    }
+  }).catch((err) => { throw err })
 }
 
 async function approveRegistryFor(addresses) {

@@ -29,12 +29,8 @@ contract  FutarchyChallenge is ChallengeInterface {
   FutarchyOracleFactory public futarchyOracleFactory;        // Factory to create FutarchyOracle
   ScalarPriceOracle public scalarPriceOracle;                // Oracle to resolve scalar prediction markets
   LMSRMarketMaker public lmsrMarketMaker;                    // MarketMaker for scalar prediction markets
-<<<<<<< HEAD
-  Token public token;                                        // Address of the TCR's intrinsic ERC20 token
-  address public registry;                                  // Address of TCR
-=======
   ERC20 public token;                                        // Address of the TCR's intrinsic ERC20 token
->>>>>>> use zeppelin ERC20 instead of Token contract
+  address public registry;                                   // Address of TCR
   uint public winningMarketIndex;                            // Index of scalar prediction market with greatest average price for long token
 
 
