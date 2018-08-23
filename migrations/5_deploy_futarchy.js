@@ -12,11 +12,11 @@ const StandardMarketWithPriceLoggerFactory = artifacts.require('StandardMarketWi
 const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory')
 const FutarchyOracleFactory = artifacts.require('FutarchyOracleFactory')
 const FutarchyOracle = artifacts.require('FutarchyOracle')
-const ScalarPriceOracleFactory = artifacts.require('ScalarPriceOracleFactory')
+const CentralizedTimedOracleFactory = artifacts.require('CentralizedTimedOracleFactory')
 const EventFactory = artifacts.require('EventFactory')
 const LMSRMarketMaker = artifacts.require('LMSRMarketMaker')
 const EtherToken = artifacts.require('EtherToken')
-const DutchExchange = artifacts.require('DutchExchange')
+const DutchExchange = artifacts.require('DutchExchangeMock')
 
 const fs = require('fs')
 const config = JSON.parse(fs.readFileSync('../conf/config.json'))
@@ -28,7 +28,6 @@ const futarchyFundingAmount = paramConfig.minDeposit * 10 ** 18
 
 module.exports = (deployer, network) => {
   return deployer.then(async () => {
-    const dutchExchangeAddress = await determineDutchExchangeAddr(network)
     await deployer.deploy(Math)
     deployer.link(Math, [EtherToken, StandardMarketFactory, StandardMarketWithPriceLoggerFactory, FutarchyChallengeFactory, EventFactory, LMSRMarketMaker, CategoricalEvent, ScalarEvent, OutcomeToken])
     await deployer.deploy([CategoricalEvent, ScalarEvent, OutcomeToken,])
@@ -38,20 +37,13 @@ module.exports = (deployer, network) => {
     await deployer.deploy([StandardMarket, StandardMarketWithPriceLogger])
     await deployer.deploy(StandardMarketFactory, StandardMarket.address)
     await deployer.deploy(StandardMarketWithPriceLoggerFactory, StandardMarketWithPriceLogger.address)
-    await deployer.deploy(EtherToken)
 
-    console.log('ETHER TOKEN: ', EtherToken.address)
-
-    await deployer.deploy(
-      ScalarPriceOracleFactory,
-      Token.address,
-      EtherToken.address,
-      dutchExchangeAddress
-    )
+    await deployer.deploy(CentralizedTimedOracleFactory)
     await deployer.deploy(LMSRMarketMaker)
-
+    await deployer.deploy(EtherToken)
     await deployer.deploy(FutarchyOracle)
     await deployer.deploy(FutarchyOracleFactory, FutarchyOracle.address, EventFactory.address, StandardMarketWithPriceLoggerFactory.address)
+
     await deployer.deploy(
       FutarchyChallengeFactory,
       Token.address,
@@ -60,20 +52,10 @@ module.exports = (deployer, network) => {
       tradingPeriod,
       timeToPriceResolution,
       FutarchyOracleFactory.address,
-      ScalarPriceOracleFactory.address,
+      CentralizedTimedOracleFactory.address,
       LMSRMarketMaker.address,
-      dutchExchangeAddress
+      network == 'rinkeby' ? '0x4e69969D9270fF55fc7c5043B074d4e45F795587' : DutchExchange.address
     )
 
   }).catch((err) => { throw err })
-
 };
-
-async function determineDutchExchangeAddr(network) {
-  if (network == 'rinkeby') {
-    return '0x4e69969D9270fF55fc7c5043B074d4e45F795587'
-  } else {
-    let dutchX = await DutchExchange.deployed()
-    return dutchX.address
-  }
-}

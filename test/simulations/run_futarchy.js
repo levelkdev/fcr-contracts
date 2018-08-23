@@ -40,7 +40,7 @@ const web3_beta = new Web3_beta(new Web3_beta.providers.HttpProvider(fcrJsConfig
 
 contract('simulate TCR apply/futarchyChallenge/resolve', (accounts) => {
 
-    it('...', async () => {
+    it.only('...', async () => {
       const [creator, applicant, challenger, voterFor, voterAgainst, buyer1, buyer2] = accounts
       const tradingPeriod = 60 * 60
       const futarchyFundingAmount = paramConfig.minDeposit * 10 ** 18
@@ -208,12 +208,10 @@ contract('simulate TCR apply/futarchyChallenge/resolve', (accounts) => {
       const scalarAcceptedEventAddr = await marketForAccepted.eventContract()
       const scalarAcceptedEvent = await ScalarEvent.at(scalarAcceptedEventAddr)
       console.log('scalarAccepted')
-      const scalarDeniedEventAddr = await marketForDenied.eventContract()
-      const scalarDeniedEvent = await ScalarEvent.at(scalarDeniedEventAddr)
-      console.log('scalarDenied')
 
       const scalarDeniedEventAddr = await marketForDenied.eventContract()
       const scalarDeniedEvent = await ScalarEvent.at(scalarDeniedEventAddr)
+      console.log('scalarDenied')
 
       const scalarOracleAddr = await scalarAcceptedEvent.oracle()
       const scalarOracle = await ScalarPriceOracle.at(scalarOracleAddr)
