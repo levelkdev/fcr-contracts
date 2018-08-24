@@ -105,7 +105,10 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
     uint den;
     uint avgPrice;
     while(i < NUM_PRICE_POINTS) {
-      (num, den) = dutchExchange.getPriceInPastAuction(token, comparatorToken, firstReferencedIndex + i);
+      // (num, den) = dutchExchange.getPriceInPastAuction(token, comparatorToken, firstReferencedIndex + i);
+      num = 10;
+      den = 1;
+
       avgPrice += (num * 10**18)/uint(den);
       i++;
     }

@@ -11,6 +11,7 @@
     "deploy-mainnet": "truffle migrate --network mainnet",
     "test:truffle": "run-with-testrpc -l 20000000 'truffle test --network testing'",
     "test": "truffle test",
+    "run_futarchy": "truffle exec ./test/exec.js ./simulations/run_futarchy.js",
     "migrate": "truffle migrate --force",
     "fix": "eslint --fix",
     "lint": "eslint",

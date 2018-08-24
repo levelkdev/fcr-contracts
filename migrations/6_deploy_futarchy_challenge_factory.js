@@ -16,7 +16,7 @@ const CentralizedTimedOracleFactory = artifacts.require('CentralizedTimedOracleF
 const EventFactory = artifacts.require('EventFactory')
 const LMSRMarketMaker = artifacts.require('LMSRMarketMaker')
 const EtherToken = artifacts.require('EtherToken')
-const DutchExchange = artifacts.require('DutchExchangeMock')
+const DutchExchange = artifacts.require('DutchExchange')
 
 const fs = require('fs')
 const config = JSON.parse(fs.readFileSync('../conf/config.json'))
