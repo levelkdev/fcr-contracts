@@ -18,13 +18,15 @@ module.exports = {
       host: 'localhost',
       network_id: '*',
       port: 8545,
-      gas: 4500000
+      gas: 6500000,
+      gasPrice: 5000000000
     },
     testing: {
       host: "localhost",
       port: 8545,
       network_id: "*",
-      gas: 4500000
+      gas: 6500000,
+      gasPrice: 5000000000
     },
     // mainnet: {
     //   provider: new HDWalletProvider(mnemonic, 'https://mainnet.infura.io'),
@@ -35,8 +37,8 @@ module.exports = {
     rinkeby: {
       provider: new HDWalletProvider(mnemonic, 'https://rinkeby.infura.io'),
       network_id: '*',
-      gas: 4500000,
-      gasPrice: 25000000000,
+      gas: 6500000,
+      gasPrice: 5000000000,
     },
     // config for solidity-coverage
     // coverage: {
@@ -47,4 +49,9 @@ module.exports = {
     //   gasPrice: 0x01, // <-- Use this low gas price
     // },
   },
+  solc: {
+    optimizer: {
+      enabled: true
+    }
+  }
 };

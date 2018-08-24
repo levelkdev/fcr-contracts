@@ -1,76 +1,78 @@
 /* eslint no-multi-spaces: 0, no-console: 0 */
-//
-// module.exports = (deployer, network) => {
-//
-// };
 
+const dxMigrateDependencies = require('@gnosis.pm/dx-contracts/src/migrations/2_migrate_dependencies')
+const dxDeployPriceFeed = require('@gnosis.pm/dx-contracts/src/migrations/3_deploy_price_feed')
+const deployFrt = require('@gnosis.pm/dx-contracts/src/migrations/4_deploy_FRT')
+const deployDx = require('@gnosis.pm/dx-contracts/src/migrations/5_deploy_DX')
+const setupDx = require('@gnosis.pm/dx-contracts/src/migrations/6_setup_DX')
+const setDxAsFrtMinter = require('@gnosis.pm/dx-contracts/src/migrations/7_set_DX_as_FRT_minter')
 
-const Math = artifacts.require('@gnosis.pm/gnosis-core-contracts/Math')
-
-const DutchExchangeMock = artifacts.require('DutchExchangeMock')
-const EtherToken = artifacts.require('EtherToken')
-const PriceFeed = artifacts.require('PriceFeed')
-const PriceOracleInterface = artifacts.require('PriceOracleInterface')
-const StandardToken = artifacts.require('StandardToken')
-const TokenGNO = artifacts.require('TokenGNO')
-const TokenRDN = artifacts.require('TokenRDN')
-const TokenOMG = artifacts.require('TokenOMG')
-const TokenOWL = artifacts.require('TokenOWL')
-const TokenOWLProxy = artifacts.require('TokenOWLProxy')
-
-const TokenMGN = artifacts.require('TokenFRT')
-const Medianizer = artifacts.require('Medianizer')
-const Proxy = artifacts.require('Proxy')
-const OWLAirdrop = artifacts.require('OWLAirdrop')
-// ETH price as reported by MakerDAO with 18 decimal places
-let currentETHPrice = (1100 * (10 ** 18))
-
-const getTime = new Promise((resolve, reject) => {
-          web3.eth.getBlock('pending', (err, block) => {
-            if(err) return reject(err)
-            resolve(block.timestamp)
-        })
+module.exports = (deployer, network, accounts) => {
+  // disabling in development for now, so run_futarchy.js script can run with DutchExchangeMock
+  if (network !== 'development') {
+    return deployer.then(() => {
+      logDxContractMigration('2_migrate_dependencies')
+      return dxMigrateDependencies({
+        artifacts,
+        deployer,
+        network,
+        accounts,
+        web3
+      })
     })
+    .then(() => {
+      logDxContractMigration('3_deploy_price_feed')
+      return dxDeployPriceFeed({
+        artifacts,
+        deployer,
+        network,
+        accounts,
+        web3,
+        ethUsdPrice: process.env.ETH_USD_PRICE,
+        feedExpirePeriodDays: process.env.FEED_EXPIRE_PERIOD_DAYS
+      })
+    })
+    .then(() => {
+      logDxContractMigration('4_deploy_FRT')
+      return deployFrt({
+        artifacts,
+        deployer,
+        network,
+        accounts
+      })
+    })
+    .then(() => {
+      logDxContractMigration('5_deploy_DX')
+      return deployDx({
+        artifacts,
+        deployer,
+        network,
+        accounts
+      })
+    })
+    .then(() => {
+      logDxContractMigration('6_setup_DX')
+      return setupDx({
+        artifacts,
+        deployer,
+        network,
+        accounts,
+        thresholdNewTokenPairUsd: process.env.THRESHOLD_NEW_TOKEN_PAIR_USD,
+        thresholdAuctionStartUsd: process.env.THRESHOLD_AUCTION_START_USD
+      })
+    })
+    .then(() => {
+      logDxContractMigration('7_set_DX_as_FRT_minter')
+      return setDxAsFrtMinter({
+        artifacts,
+        deployer,
+        network,
+        accounts
+      })
+    })
+  }
+}
 
-module.exports = function deploy(deployer, network, accounts) {
-  if (network == 'testing' || network == 'development') {
-      deployer.deploy(Math)
-      // Linking
-      .then(() => deployer.link(Math, [StandardToken, EtherToken, TokenGNO, TokenMGN, TokenOWL, TokenOWLProxy, OWLAirdrop]))
-      .then(() => deployer.link(Math, [TokenRDN, TokenOMG]))
-
-      // Deployment of Tokens
-      .then(() => deployer.deploy(EtherToken))
-      // .then(() => deployer.deploy(TokenGNO, 100000 * (10 ** 18)))
-      // .then(() => deployer.deploy(TokenRDN, 100000 * (10 ** 18)))
-      // .then(() => deployer.deploy(TokenOMG, 100000 * (10 ** 18)))
-      .then(() => deployer.deploy(TokenMGN, accounts[0]))
-      .then(() => deployer.deploy(TokenOWL))
-      .then(() => deployer.deploy(TokenOWLProxy, TokenOWL.address))
-
-      // Deployment of PriceFeedInfrastructure
-      .then(() => deployer.deploy(PriceFeed))
-      .then(() => deployer.deploy(Medianizer))
-      .then(() => deployer.deploy(PriceOracleInterface, accounts[0], Medianizer.address))
-      .then(() => Medianizer.deployed())
-      .then(M => M.set(PriceFeed.address, { from: accounts[0] }))
-      .then(() => PriceFeed.deployed())
-      .then(P => P.post(currentETHPrice, 1516168838 * 2, Medianizer.address, { from: accounts[0] }))
-
-      // Deployment of DutchExchange
-      .then(() => deployer.deploy(DutchExchangeMock))
-      .then(() => deployer.deploy(Proxy, DutchExchangeMock.address))
-
-      // @dev DX Constructor creates exchange
-      .then(() => Proxy.deployed())
-      .then(p => DutchExchangeMock.at(p.address).setupDutchExchange(
-        TokenMGN.address,
-        TokenOWLProxy.address,
-        accounts[0],                           // @param _owner will be the admin of the contract
-        EtherToken.address,                   // @param _ETH               - address of ETH ERC-20 token
-        PriceOracleInterface.address,        // @param _priceOracleAddress - address of priceOracle
-        10000000000000000000000,            // @param _thresholdNewTokenPair: 10,000 dollar
-        1000000000000000000000,            // @param _thresholdNewAuction:     1,000 dollar
-      ))
-    }
+function logDxContractMigration (msg) {
+  console.log(`Running dx-contract migration: ${msg}`)
 }
