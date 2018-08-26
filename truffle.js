@@ -22,9 +22,9 @@ module.exports = {
       gasPrice: 5000000000
     },
     testing: {
-      host: "localhost",
+      host: 'localhost',
+      network_id: '*',
       port: 8545,
-      network_id: "*",
       gas: 6500000,
       gasPrice: 5000000000
     },

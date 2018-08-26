@@ -1,11 +1,22 @@
 import _ from 'lodash'
-import lkTestHelpers from 'lk-test-helpers'
 import fcrjs from 'fcr-js'
 import Web3_beta from 'web3'
 
+/*
+ * Add Listing
+ * -----------
+ * 
+ * This script applies a listing and immediately creates a challenge
+ * for the listing. Trading on LMSR markets cause the challenge to
+ * fail, thus adding the listing to the registry. After the listing
+ * is added, the ScalarEvent contracts are resolved by a ScalarPriceOracle
+ * which gets the price from the average trading price of the FCR/ETH
+ * token pair on DutchExchange.
+ * 
+ */
+
 module.exports = async (artifacts, web3, config, fcrJsConfig, utils) => {
   const { accounts } = web3.eth
-  const { increaseTime } = lkTestHelpers(web3)
   const paramConfig = config.paramDefaults
 
   const Parameterizer = artifacts.require('./Parameterizer.sol')
@@ -15,26 +26,15 @@ module.exports = async (artifacts, web3, config, fcrJsConfig, utils) => {
   const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory')
   const EtherToken = artifacts.require('EtherToken')
   const Event = artifacts.require('Event')
-  const EventFactory = artifacts.require('EventFactory')
-  const CategoricalEvent = artifacts.require('CategoricalEvent')
-  const ScalarEvent = artifacts.require('ScalarEvent')
-  const StandardMarket = artifacts.require('StandardMarket')
-  const StandardMarketFactory = artifacts.require('StandardMarketFactory')
-  const StandardMarketWithPriceLogger = artifacts.require('StandardMarketWithPriceLogger')
-  const StandardMarketWithPriceLoggerFactory = artifacts.require('StandardMarketWithPriceLoggerFactory')
   const LMSRMarketMaker = artifacts.require('LMSRMarketMaker')
   const FutarchyOracleFactory = artifacts.require('FutarchyOracleFactory')
   const ScalarPriceOracleFactory = artifacts.require('ScalarPriceOracleFactory')
-  const ScalarPriceOracle = artifacts.require('ScalarPriceOracle')
   const FutarchyChallenge = artifacts.require('FutarchyChallenge')
-  const FutarchyOracle = artifacts.require('FutarchyOracle')
   const DutchExchange = artifacts.require('DutchExchange')
 
   const [creator, applicant, challenger, voterFor, voterAgainst, buyer1, buyer2] = accounts
   const tradingPeriod = 60 * 60
   const futarchyFundingAmount = paramConfig.minDeposit * 10 ** 18
-  const categoricalMarketFunding = 10 * 10 ** 18
-  const scalarMarketFunding = 10 * 10 ** 18
   const approvalAmount = 20 * 10 ** 18
 
   const token = await Token.deployed()
@@ -46,13 +46,11 @@ module.exports = async (artifacts, web3, config, fcrJsConfig, utils) => {
   const outcomeToken          = await OutcomeToken.deployed()
   const eventFactory          = await EventFactory.deployed()
   const marketFactory         = await StandardMarketWithPriceLoggerFactory.deployed()
+  const parameterizer         = await Parameterizer.deployed()
   const scalarPriceOracleFactory = await ScalarPriceOracleFactory.new(token.address, etherToken.address, dutchExchange.address)
-  const standardMarketFactory = await StandardMarketFactory.deployed()
   const futarchyOracleFactory = await FutarchyOracleFactory.deployed()
   const lmsrMarketMaker = await LMSRMarketMaker.new()
   const timeToPriceResolution = 60 * 60 * 24 * 7 // a week
-  const upperBound = 200
-  const lowerBound = 100
 
   const futarchyChallengeFactory = await FutarchyChallengeFactory.new(
     token.address,
@@ -65,6 +63,14 @@ module.exports = async (artifacts, web3, config, fcrJsConfig, utils) => {
     lmsrMarketMaker.address,
     dutchExchange.address
   )
+
+  const allEvents = futarchyChallengeFactory.allEvents({
+    fromBlock: 0,
+    toBlock: 'latest'
+  });
+  allEvents.watch((err, res) => {
+    console.log(err, res);
+  });
 
   console.log('----------------------- CREATING REGISTRY -----------------------')
   const { registryProxy} = await utils.getProxiesBYO(token.address);

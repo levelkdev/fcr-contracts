@@ -8,8 +8,7 @@ const setupDx = require('@gnosis.pm/dx-contracts/src/migrations/6_setup_DX')
 const setDxAsFrtMinter = require('@gnosis.pm/dx-contracts/src/migrations/7_set_DX_as_FRT_minter')
 
 module.exports = (deployer, network, accounts) => {
-  // disabling in development for now, so run_futarchy.js script can run with DutchExchangeMock
-  if (network == 'development') {
+  if (network !== 'development') {
     return deployer.then(() => {
       logDxContractMigration('2_migrate_dependencies')
       return dxMigrateDependencies({

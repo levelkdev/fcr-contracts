@@ -18,15 +18,19 @@ module.exports = (deployer, network) => {
 
     await token.transfer(tokenHolder.address, tokenHolder.amount);
 
-    giveTokensTo(tokenHolders.slice(1));
+    const receipt = await giveTokensTo(tokenHolders.slice(1));
+    return receipt
   }
 
   if (config.token.deployToken) {
-    deployer.deploy(
+    return deployer.deploy(
       Token, config.token.supply, config.token.name, config.token.decimals,
       config.token.symbol,
     )
-      .then(async () => giveTokensTo(config.token.tokenHolders));
+      .then(async () => {
+        const receipt = await giveTokensTo(config.token.tokenHolders)
+        return receipt
+      })
   } else {
     // eslint-disable-next-line
     console.log('skipping optional token deploy and using the token at address ' +

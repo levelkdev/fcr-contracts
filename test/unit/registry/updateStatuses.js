@@ -6,7 +6,7 @@ const config = JSON.parse(fs.readFileSync('./conf/config.json'));
 const paramConfig = config.paramDefaults;
 const FutarchyOracle = artifacts.require('FutarchyOracle')
 
-const utils = require('../utils.js');
+const utils = require('../../utils.js')(artifacts);
 
 const bigTen = number => new BN(number.toString(10), 10);
 const toWei = number => new BN(number * 10 ** 18)

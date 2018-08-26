@@ -10,36 +10,35 @@ const fs = require('fs');
 const Web3_beta = require('web3')
 const BigNumber = require('bignumber.js');
 
-const fcrJsConfig = JSON.parse(fs.readFileSync('./test/fcrJsConfig.json'))
+const fcrJsConfig = require('./fcrJsConfig.json')
 const web3_beta = new Web3_beta(new Web3_beta.providers.HttpProvider(fcrJsConfig.local.web3Url))
 
 
 const ethRPC = new EthRPC(new HttpProvider('http://localhost:8545'));
 const ethQuery = new Eth(new HttpProvider('http://localhost:8545'));
 
-const PLCRVoting = artifacts.require('PLCRVoting.sol');
-const FutarchyChallenge = artifacts.require('FutarchyChallenge.sol');
-const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory.sol');
-const FutarchyOracleFactory = artifacts.require('FutarchyOracleFactory')
-const FutarchyOracle = artifacts.require('FutarchyOracle')
-const CentralizedTimedOracleFactory = artifacts.require('CentralizedTimedOracleFactory')
-const StandardMarket = artifacts.require('StandardMarket')
-const DutchExchange = artifacts.require('DutchExchangeMock')
-const LMSRMarketMaker = artifacts.require('LMSRMarketMaker')
-const Parameterizer = artifacts.require('Parameterizer.sol');
-const Registry = artifacts.require('Registry.sol');
-const Token = artifacts.require('EIP20.sol');
-const EtherToken = artifacts.require('EtherToken.sol')
-
-const RegistryFactory = artifacts.require('RegistryFactory.sol');
-
-const config = JSON.parse(fs.readFileSync('./conf/config.json'));
+const config = require('../conf/config.json')
 const paramConfig = config.paramDefaults;
 
 const BN = small => new Eth.BN(small.toString(10), 10);
 const toWei = number => new BN(number * 10 ** 18)
 
-module.exports = (artifacts, config) => {
+module.exports = (artifacts) => {
+  const PLCRVoting = artifacts.require('PLCRVoting.sol');
+  const FutarchyChallenge = artifacts.require('FutarchyChallenge.sol');
+  const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory.sol');
+  const FutarchyOracleFactory = artifacts.require('FutarchyOracleFactory')
+  const FutarchyOracle = artifacts.require('FutarchyOracle')
+  const CentralizedTimedOracleFactory = artifacts.require('CentralizedTimedOracleFactory')
+  const StandardMarket = artifacts.require('StandardMarket')
+  const DutchExchange = artifacts.require('DutchExchangeMock')
+  const LMSRMarketMaker = artifacts.require('LMSRMarketMaker')
+  const Parameterizer = artifacts.require('Parameterizer.sol');
+  const Registry = artifacts.require('Registry.sol');
+  const Token = artifacts.require('EIP20.sol');
+  const EtherToken = artifacts.require('EtherToken.sol')
+  const RegistryFactory = artifacts.require('RegistryFactory.sol');
+
   const utils = {
     getProxies: async () => {
       const registryFactory = await RegistryFactory.deployed();
