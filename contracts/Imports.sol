@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import '@gnosis.pm/util-contracts/contracts/EtherToken.sol';
+import '@gnosis.pm/gnosis-core-contracts/contracts/Tokens/EtherToken.sol';
 import '@gnosis.pm/gno-token/contracts/TokenGNO.sol';
 import '@gnosis.pm/owl-token/contracts/TokenOWLProxy.sol';
 import '@gnosis.pm/owl-token/contracts/OWLAirdrop.sol';
