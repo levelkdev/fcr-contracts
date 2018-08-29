@@ -1,6 +1,8 @@
 import _ from 'lodash'
 import fcrjs from 'fcr-js'
 import Web3_beta from 'web3'
+import distributeToken from '../helpers/distributeToken'
+import runDutchExchangeAuction from '../helpers/runDutchExchangeAuction'
 
 /*
  * Add Listing
@@ -38,9 +40,13 @@ module.exports = async (artifacts, web3, config, fcrJsConfig, utils) => {
   const approvalAmount = 20 * 10 ** 18
 
   const token = await Token.deployed()
-  for(let account of accounts) {
-    await token.transfer(account, 100 * 10 ** 18);
-  }
+  const etherToken = await EtherToken.deployed()
+
+  await distributeToken(accounts, token)
+
+  // TODO: implement this
+  // await distributeEtherToken(accounts, etherToken)
+
   const dutchExchange         = await DutchExchange.deployed()
   const etherToken            = await EtherToken.deployed()
   const outcomeToken          = await OutcomeToken.deployed()
@@ -51,6 +57,8 @@ module.exports = async (artifacts, web3, config, fcrJsConfig, utils) => {
   const futarchyOracleFactory = await FutarchyOracleFactory.deployed()
   const lmsrMarketMaker = await LMSRMarketMaker.new()
   const timeToPriceResolution = 60 * 60 * 24 * 7 // a week
+
+  await runDutchExchangeAuction(web3, dutchExchange, token, etherToken)
 
   const futarchyChallengeFactory = await FutarchyChallengeFactory.new(
     token.address,
@@ -64,13 +72,13 @@ module.exports = async (artifacts, web3, config, fcrJsConfig, utils) => {
     dutchExchange.address
   )
 
-  const allEvents = futarchyChallengeFactory.allEvents({
-    fromBlock: 0,
-    toBlock: 'latest'
-  });
-  allEvents.watch((err, res) => {
-    console.log(err, res);
-  });
+  // const allEvents = futarchyChallengeFactory.allEvents({
+  //   fromBlock: 0,
+  //   toBlock: 'latest'
+  // });
+  // allEvents.watch((err, res) => {
+  //   console.log(err, res);
+  // });
 
   console.log('----------------------- CREATING REGISTRY -----------------------')
   const { registryProxy} = await utils.getProxiesBYO(token.address);
