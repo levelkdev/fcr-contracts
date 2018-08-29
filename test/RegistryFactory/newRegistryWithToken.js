@@ -2,7 +2,8 @@
 /* global contract assert artifacts */
 
 const EIP20 = artifacts.require('tokens/eip20/EIP20.sol');
-const PLCRVotingRegistryFactory = artifacts.require('./PLCRVotingRegistryFactory.sol');
+const RegistryFactory = artifacts.require('./RegistryFactory.sol');
+const FutarchyChallengeFactory = artifacts.require('./FutarchyChallengeFactory.sol');
 const Registry = artifacts.require('./Registry.sol');
 const fs = require('fs');
 
@@ -11,10 +12,11 @@ const paramConfig = config.paramDefaults;
 
 contract('RegistryFactory', (accounts) => {
   describe('Function: newRegistryWithToken', () => {
-    let registryFactory;
+    let registryFactory, challengeFactory;
 
     before(async () => {
-      registryFactory = await PLCRVotingRegistryFactory.deployed();
+      registryFactory = await RegistryFactory.deployed();
+      challengeFactory = await FutarchyChallengeFactory.deployed();
     });
 
     it('should deploy and initialize a new Registry contract', async () => {
@@ -49,6 +51,7 @@ contract('RegistryFactory', (accounts) => {
         tokenParams.symbol,
         parameters,
         'NEW TCR',
+        challengeFactory.address,
         { from: accounts[0] },
       );
       const { creator } = registryReceipt.logs[0].args;

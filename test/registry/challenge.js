@@ -8,54 +8,47 @@ const paramConfig = config.paramDefaults;
 
 const utils = require('../utils.js');
 
-const bigTen = number => new BN(number.toString(10), 10);
+const toWei = number => new BN(number * 10 ** 18);
 
 contract('Registry', (accounts) => {
-  describe('Function: challenge', () => {
+  describe('Function: createChallenge', () => {
     const [applicant, challenger, voter, proposer] = accounts;
 
     let token;
-    let voting;
     let parameterizer;
     let registry;
+    let fcr;
+    let minDeposit;
 
     before(async () => {
       const {
-        votingProxy, paramProxy, registryProxy, tokenInstance,
+        paramProxy, registryProxy, tokenInstance, fcrjs
       } = await utils.getProxies();
-      voting = votingProxy;
       parameterizer = paramProxy;
       registry = registryProxy;
       token = tokenInstance;
+      fcr = fcrjs;
+      minDeposit = toWei(paramConfig.minDeposit)
 
-      await utils.approveProxies(accounts, token, voting, parameterizer, registry);
+      await utils.approveProxies(accounts, token, false, parameterizer, registry);
     });
 
     it('should successfully challenge an application', async () => {
-      const listing = utils.getListingHash('failure.net');
+      const listingTitle = 'failure.net'
+      const listingHash  = fcr.registry.getListingHash(listingTitle)
 
-      const challengerStartingBalance = await token.balanceOf.call(challenger);
+      await fcr.registry.apply(applicant, listingTitle, minDeposit, '')
+      const appWasMade = await registry.appWasMade.call(listingHash);
+      assert.strictEqual(appWasMade, true, 'An application should have been submitted')
 
-      await utils.as(applicant, registry.apply, listing, paramConfig.minDeposit, '');
-      await utils.challengeAndGetPollID(listing, challenger, registry);
-      await utils.increaseTime(paramConfig.commitStageLength + paramConfig.revealStageLength + 1);
-      await registry.updateStatus(listing);
-
-      const isWhitelisted = await registry.isWhitelisted.call(listing);
+      await utils.createAndStartChallenge(fcr, listingTitle, challenger);
+      const isWhitelisted = await registry.isWhitelisted.call(listingHash);
       assert.strictEqual(isWhitelisted, false, 'An application which should have failed succeeded');
-
-      const challengerFinalBalance = await token.balanceOf.call(challenger);
-      // Note edge case: no voters, so challenger gets entire stake
-      const expectedFinalBalance =
-        challengerStartingBalance.add(new BN(paramConfig.minDeposit, 10));
-      assert.strictEqual(
-        challengerFinalBalance.toString(10), expectedFinalBalance.toString(10),
-        'Reward not properly disbursed to challenger',
-      );
     });
 
     it('should successfully challenge a listing', async () => {
-      const listing = utils.getListingHash('failure.net');
+      const listingTitle = 'failure.net'
+      const listingHash  = fcr.registry.getListingHash(listingTitle)
 
       const challengerStartingBalance = await token.balanceOf.call(challenger);
 
@@ -80,7 +73,6 @@ contract('Registry', (accounts) => {
 
     it('should unsuccessfully challenge an application', async () => {
       const listing = utils.getListingHash('winner.net');
-      const minDeposit = new BN(paramConfig.minDeposit, 10);
 
       await utils.as(applicant, registry.apply, listing, minDeposit, '');
       const pollID = await utils.challengeAndGetPollID(listing, challenger, registry);
@@ -108,7 +100,6 @@ contract('Registry', (accounts) => {
 
     it('should unsuccessfully challenge a listing', async () => {
       const listing = utils.getListingHash('winner2.net');
-      const minDeposit = new BN(paramConfig.minDeposit, 10);
 
       await utils.addToWhitelist(listing, minDeposit, applicant, registry);
 
@@ -132,7 +123,6 @@ contract('Registry', (accounts) => {
 
     it('should touch-and-remove a listing with a depost below the current minimum', async () => {
       const listing = utils.getListingHash('touchandremove.net');
-      const minDeposit = new BN(paramConfig.minDeposit, 10);
       const newMinDeposit = minDeposit.add(new BN('1', 10));
 
       const applicantStartingBal = await token.balanceOf.call(applicant);
@@ -182,7 +172,6 @@ contract('Registry', (accounts) => {
 
     it('should revert if challenge occurs on a listing with an open challenge', async () => {
       const listing = utils.getListingHash('doubleChallenge.net');
-      const minDeposit = new BN(await parameterizer.get.call('minDeposit'), 10);
 
       await utils.addToWhitelist(listing, minDeposit.toString(), applicant, registry);
 
@@ -200,7 +189,6 @@ contract('Registry', (accounts) => {
     it('should revert if token transfer from user fails', async () => {
       const listing = utils.getListingHash('challengerNeedsTokens.net');
 
-      const minDeposit = new BN(await parameterizer.get.call('minDeposit'), 10);
       await utils.as(applicant, registry.apply, listing, minDeposit, '');
 
       // Approve the contract to transfer 0 tokens from account so the transfer will fail
@@ -216,4 +204,3 @@ contract('Registry', (accounts) => {
     });
   });
 });
-

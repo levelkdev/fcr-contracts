@@ -17,7 +17,6 @@ contract('Parameterizer', (accounts) => {
       const { paramProxy, tokenInstance } = await utils.getProxies();
       parameterizer = paramProxy;
       token = tokenInstance;
-
       await utils.approveProxies(accounts, token, false, parameterizer, false);
     });
 
@@ -44,4 +43,3 @@ contract('Parameterizer', (accounts) => {
     });
   });
 });
-

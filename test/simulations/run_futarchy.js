@@ -40,7 +40,7 @@ const web3_beta = new Web3_beta(new Web3_beta.providers.HttpProvider(fcrJsConfig
 
 contract('simulate TCR apply/futarchyChallenge/resolve', (accounts) => {
 
-    it.only('...', async () => {
+    xit('...', async () => {
       const [creator, applicant, challenger, voterFor, voterAgainst, buyer1, buyer2] = accounts
       const tradingPeriod = 60 * 60
       const futarchyFundingAmount = paramConfig.minDeposit * 10 ** 18
@@ -54,7 +54,6 @@ contract('simulate TCR apply/futarchyChallenge/resolve', (accounts) => {
       }
       const dutchExchange         = await DutchExchange.deployed()
       const etherToken            = await EtherToken.deployed()
-      const parameterizer         = await Parameterizer.deployed()
       const outcomeToken          = await OutcomeToken.deployed()
       const eventFactory          = await EventFactory.deployed()
       const marketFactory         = await StandardMarketWithPriceLoggerFactory.deployed()
@@ -79,9 +78,12 @@ contract('simulate TCR apply/futarchyChallenge/resolve', (accounts) => {
       )
 
       console.log('----------------------- CREATING REGISTRY -----------------------')
-      const registry = await Registry.new(token.address, futarchyChallengeFactory.address, parameterizer.address, 'best registry' )
+      const { registryProxy} = await utils.getProxiesBYO(token.address);
+      const registry = registryProxy;
+
+      // await Registry.new(token.address, futarchyChallengeFactory.address, parameterizer.address, 'best registry' )
       await logTCRBalances(accounts, token, registry)
- 
+
       const fcr = fcrjs(web3_beta, _.merge(fcrJsConfig.local, {
         registryAddress: registry.address,
         tokenAddress: token.address,

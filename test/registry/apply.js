@@ -154,4 +154,3 @@ contract('Registry', (accounts) => {
     });
   });
 });
-

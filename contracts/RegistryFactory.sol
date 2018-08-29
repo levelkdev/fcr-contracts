@@ -17,6 +17,7 @@ contract RegistryFactory {
     constructor(ParameterizerFactory _parameterizerFactory) public {
         parameterizerFactory = _parameterizerFactory;
         proxyFactory = parameterizerFactory.proxyFactory();
+        canonizedRegistry = new Registry();
     }
 
     /*
@@ -27,8 +28,8 @@ contract RegistryFactory {
     function newRegistryBYOToken(
         EIP20 _token,
         uint[] _parameters,
-        address _challengeFactory,
-        string _name
+        string _name,
+        address _challengeFactory
     ) public returns (Registry) {
         Parameterizer parameterizer = parameterizerFactory.newParameterizerBYOToken(_token, _parameters);
 

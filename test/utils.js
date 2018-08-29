@@ -1,37 +1,112 @@
 /* eslint-env mocha */
 /* global artifacts */
 
+import fcr_js from 'fcr-js'
 const Eth = require('ethjs');
 const HttpProvider = require('ethjs-provider-http');
 const EthRPC = require('ethjs-rpc');
 const abi = require('ethereumjs-abi');
 const fs = require('fs');
+const Web3_beta = require('web3')
+const BigNumber = require('bignumber.js');
 
-const ethRPC = new EthRPC(new HttpProvider('http://localhost:7545'));
-const ethQuery = new Eth(new HttpProvider('http://localhost:7545'));
+const fcrJsConfig = JSON.parse(fs.readFileSync('./test/fcrJsConfig.json'))
+const web3_beta = new Web3_beta(new Web3_beta.providers.HttpProvider(fcrJsConfig.local.web3Url))
+
+
+const ethRPC = new EthRPC(new HttpProvider('http://localhost:8545'));
+const ethQuery = new Eth(new HttpProvider('http://localhost:8545'));
 
 const PLCRVoting = artifacts.require('PLCRVoting.sol');
-const PLCRVotingChallenge = artifacts.require('PLCRVotingChallenge.sol');
-const PLCRVotingChallengeFactory = artifacts.require('PLCRVotingChallengeFactory.sol');
+const FutarchyChallenge = artifacts.require('FutarchyChallenge.sol');
+const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory.sol');
+const FutarchyOracleFactory = artifacts.require('FutarchyOracleFactory')
+const FutarchyOracle = artifacts.require('FutarchyOracle')
+const CentralizedTimedOracleFactory = artifacts.require('CentralizedTimedOracleFactory')
+const StandardMarket = artifacts.require('StandardMarket')
+const DutchExchange = artifacts.require('DutchExchangeMock')
+const LMSRMarketMaker = artifacts.require('LMSRMarketMaker')
 const Parameterizer = artifacts.require('Parameterizer.sol');
 const Registry = artifacts.require('Registry.sol');
 const Token = artifacts.require('EIP20.sol');
+const EtherToken = artifacts.require('EtherToken.sol')
 
-const PLCRVotingRegistryFactory = artifacts.require('PLCRVotingRegistryFactory.sol');
+const RegistryFactory = artifacts.require('RegistryFactory.sol');
 
 const config = JSON.parse(fs.readFileSync('./conf/config.json'));
 const paramConfig = config.paramDefaults;
 
 const BN = small => new Eth.BN(small.toString(10), 10);
+const toWei = number => new BN(number * 10 ** 18)
 
 const utils = {
   getProxies: async () => {
-    const registryFactory = await PLCRVotingRegistryFactory.deployed();
-    const registryReceipt = await registryFactory.newRegistryWithToken(
-      config.token.supply,
-      config.token.name,
-      config.token.decimals,
-      config.token.symbol,
+    const registryFactory = await RegistryFactory.deployed();
+    const token = await Token.new(config.token.supply, config.token.name, config.token.decimals, config.token.symbol);
+    const lmsrMarketMaker = await LMSRMarketMaker.deployed()
+    const challengeFactory = await FutarchyChallengeFactory.new(
+      token.address,
+      EtherToken.address,
+      toWei(config.challengeFactory.stakeAmount),
+      config.challengeFactory.tradingPeriod,
+      config.challengeFactory.timeToPriceResolution,
+      FutarchyOracleFactory.address,
+      CentralizedTimedOracleFactory.address,
+      LMSRMarketMaker.address,
+      DutchExchange.address
+    )
+    const registryReceipt = await registryFactory.newRegistryBYOToken(
+      token.address,
+      [
+        toWei(paramConfig.minDeposit),
+        toWei(paramConfig.pMinDeposit),
+        paramConfig.applyStageLength,
+        paramConfig.pApplyStageLength,
+        paramConfig.commitStageLength,
+        paramConfig.pCommitStageLength,
+        paramConfig.revealStageLength,
+        paramConfig.pRevealStageLength,
+        paramConfig.dispensationPct,
+        paramConfig.pDispensationPct,
+        paramConfig.voteQuorum,
+        paramConfig.pVoteQuorum,
+      ],
+      'Futarchy Curated Registry',
+      challengeFactory.address
+    );
+
+    const {
+      parameterizer,
+      registry,
+    } = registryReceipt.logs[0].args;
+
+    const tokenInstance = token;
+    const paramProxy = await Parameterizer.at(parameterizer);
+    const registryProxy = await Registry.at(registry);
+    const plcr = await paramProxy.voting.call();
+    const votingProxy = PLCRVoting.at(plcr);
+
+    const fcrjs = fcr_js(web3_beta, _.merge(fcrJsConfig.local, {
+      registryAddress: registry,
+      tokenAddress: token.address,
+      LMSRMarketMakerAddress: lmsrMarketMaker.address,
+    }))
+
+    const proxies = {
+      tokenInstance,
+      votingProxy,
+      paramProxy,
+      registryProxy,
+      fcrjs,
+    };
+    return proxies;
+  },
+
+  getProxiesBYO: async (token) => {
+    const registryFactory = await RegistryFactory.deployed();
+    const challengeFactory = await FutarchyChallengeFactory.deployed();
+    const registryReceipt = await registryFactory.newRegistryBYOToken(
+      token.address,
       [
         paramConfig.minDeposit,
         paramConfig.pMinDeposit,
@@ -46,24 +121,21 @@ const utils = {
         paramConfig.voteQuorum,
         paramConfig.pVoteQuorum,
       ],
-      'The TestChain Registry',
+      'Futarchy Curated Registry',
+      challengeFactory.address
     );
 
     const {
-      token,
       parameterizer,
-      registry,
+      registry
     } = registryReceipt.logs[0].args;
 
-    const tokenInstance = Token.at(token);
     const paramProxy = Parameterizer.at(parameterizer);
     const registryProxy = Registry.at(registry);
-
     const plcr = await paramProxy.voting.call();
     const votingProxy = PLCRVoting.at(plcr);
 
     const proxies = {
-      tokenInstance,
       votingProxy,
       paramProxy,
       registryProxy,
@@ -73,18 +145,22 @@ const utils = {
 
   approveProxies: async (accounts, token, plcr, parameterizer, registry) => (
     Promise.all(accounts.map(async (user) => {
-      await token.transfer(user, 10000000000);
+      await token.transfer(user, 10000000000000000000);
       if (plcr) {
-        await token.approve(plcr.address, 10000000000, { from: user });
+        await token.approve(plcr.address, 10000000000000000000, { from: user });
       }
       if (parameterizer) {
-        await token.approve(parameterizer.address, 10000000000, { from: user });
+        await token.approve(parameterizer.address, 10000000000000000000, { from: user });
       }
       if (registry) {
-        await token.approve(registry.address, 10000000000, { from: user });
+        await token.approve(registry.address, 10000000000000000000, { from: user });
       }
     }))
   ),
+
+  tradeOnChallenge: async (challenge) => {
+
+  },
 
   getVoting: async () => {
     const plcrVotingChallengeFactory = await PLCRVotingChallengeFactory.deployed();
@@ -92,27 +168,32 @@ const utils = {
     return PLCRVoting.at(votingAddr);
   },
 
-  increaseTime: async seconds =>
+  increaseTime: async seconds => {
+    if (typeof(seconds) == 'string') {
+      seconds = parseInt(seconds)
+    }
     new Promise((resolve, reject) => ethRPC.sendAsync({
       method: 'evm_increaseTime',
       params: [seconds],
     }, (err) => {
-      if (err) reject(err);
+      if (err) {console.log('err!! ', err); reject(err)};
       resolve();
     }))
-      .then(() => new Promise((resolve, reject) => ethRPC.sendAsync({
+      .then(() =>
+        new Promise((resolve, reject) => ethRPC.sendAsync({
         method: 'evm_mine',
         params: [],
       }, (err) => {
-        if (err) reject(err);
         resolve();
-      }))),
+      })))
+    },
 
   getVoteSaltHash: (vote, salt) => (
     `0x${abi.soliditySHA3(['uint', 'uint'], [vote, salt]).toString('hex')}`
   ),
 
   getListingHash: domain => (
+    // web3.utils.fromAscii(domain)
     `0x${abi.soliditySHA3(['string'], [domain]).toString('hex')}`
   ),
 
@@ -129,13 +210,40 @@ const utils = {
     await utils.as(actor, registry.updateStatus, domain);
   },
 
-  as: (actor, fn, ...args) => {
+  createAndStartChallenge: async (fcr, listingTitle, challenger) => {
+    const minDeposit = toWei(paramConfig.minDeposit);
+    await fcr.registry.createChallenge(challenger, listingTitle, '')
+    const listing   = await fcr.registry.getListing(listingTitle);
+    const challenge = await fcr.registry.getChallenge(listing.challengeID);
+    await challenge.start(challenger);
+    await fcr.token.contract.methods.transfer(challenger, minDeposit).call()
+    await fcr.token.contract.methods.approve(challenge.address, minDeposit).call({from: challenger})
+    await challenge.fund(challenger);
+    return challenge;
+  },
+
+  makeChallengeFail: async (fcr, listingTitle, trader) => {
+    const listing        = await fcr.registry.getListing(listingTitle);
+    const challenge      = await fcr.registry.getChallenge(listing.challengeID);
+    const tradingPeriod  = await challenge.contract.methods.tradingPeriod().call();
+    const futAddr        = await challenge.contract.methods.futarchyOracle().call()
+    const futarchyOracle = await FutarchyOracle.at(futAddr);
+    const marketAddr     = await futarchyOracle.markets(0)
+    const market         = await StandardMarket.at(marketAddr)
+    await challenge.buyOutcome(trader, 'LONG_DENIED', new BigNumber(1 * 10 **18))
+    await utils.increaseTime(parseInt(tradingPeriod) + 1);
+    await challenge.setOutcome(trader);
+    await fcr.registry.updateStatus(trader, listingTitle)
+  },
+
+  as: async (actor, fn, ...args) => {
     function detectSendObject(potentialSendObj) {
       function hasOwnProperty(obj, prop) {
         const proto = obj.constructor.prototype;
         return (prop in obj) &&
           (!(prop in proto) || proto[prop] !== obj[prop]);
       }
+
       if (typeof potentialSendObj !== 'object') { return undefined; }
       if (
         hasOwnProperty(potentialSendObj, 'from') ||
@@ -146,11 +254,13 @@ const utils = {
       ) {
         throw new Error('It is unsafe to use "as" with custom send objects');
       }
+
       return undefined;
     }
     detectSendObject(args[args.length - 1]);
     const sendObject = { from: actor };
-    return fn(...args, sendObject);
+    let receipt = await fn(...args, sendObject);
+    return receipt;
   },
 
   isEVMException: err => (
@@ -181,21 +291,6 @@ const utils = {
     return challengeID;
   },
 
-  getPLCRVotingChallenge: async (domain, registry) => {
-    const listing = await registry.listings.call(domain);
-    const challengeID = listing[4];
-    const challengeInfo = await registry.challenges(challengeID);
-    const challengeAddress = challengeInfo[0];
-    return PLCRVotingChallenge.at(challengeAddress);
-  },
-
-  commitVote: async (pollID, voteOption, tokensArg, salt, voter, voting) => {
-    const hash = utils.getVoteSaltHash(voteOption, salt);
-    await utils.as(voter, voting.requestVotingRights, tokensArg);
-
-    const prevPollID = await voting.getInsertPointForNumTokens.call(voter, tokensArg, pollID);
-    await utils.as(voter, voting.commitVote, pollID, hash, tokensArg, prevPollID);
-  },
 
   getReceiptValue: (receipt, arg) => receipt.logs[0].args[arg],
 

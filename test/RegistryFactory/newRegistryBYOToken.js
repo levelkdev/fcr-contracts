@@ -2,8 +2,9 @@
 /* global contract assert artifacts */
 
 const EIP20 = artifacts.require('tokens/eip20/EIP20.sol');
-const PLCRVotingRegistryFactory = artifacts.require('./PLCRVotingRegistryFactory.sol');
+const RegistryFactory = artifacts.require('./RegistryFactory.sol');
 const Registry = artifacts.require('./Registry.sol');
+const ChallengeFactory = artifacts.require('./Challenge/FutarchyChallengeFactory');
 const fs = require('fs');
 
 const config = JSON.parse(fs.readFileSync('./conf/config.json'));
@@ -11,10 +12,11 @@ const paramConfig = config.paramDefaults;
 
 contract('RegistryFactory', (accounts) => {
   describe('Function: newRegistryBYOToken', () => {
-    let registryFactory;
+    let registryFactory, challengeFactory;
 
     before(async () => {
-      registryFactory = await PLCRVotingRegistryFactory.deployed();
+      registryFactory = await RegistryFactory.deployed();
+      challengeFactory = await ChallengeFactory.deployed();
     });
 
     it('should deploy and initialize a new Registry contract', async () => {
@@ -31,7 +33,6 @@ contract('RegistryFactory', (accounts) => {
         tokenParams.decimals,
         tokenParams.symbol,
       );
-
       // new parameterizer using factory/proxy
       const parameters = [
         paramConfig.minDeposit,
@@ -53,13 +54,16 @@ contract('RegistryFactory', (accounts) => {
         token.address,
         parameters,
         'NEW TCR',
+        challengeFactory.address,
         { from: accounts[0] },
       );
+
       const { creator } = registryReceipt.logs[0].args;
       const registry = Registry.at(registryReceipt.logs[0].args.registry);
 
       // verify: registry's token
-      const registryToken = await registry.token.call();
+      const registryToken = await registry.token();
+
       assert.strictEqual(
         registryToken,
         token.address,
@@ -72,6 +76,7 @@ contract('RegistryFactory', (accounts) => {
         'NEW TCR',
         'the registry\'s name is incorrect',
       );
+
       // verify: registry's creator
       assert.strictEqual(creator, accounts[0], 'the creator emitted in the newRegistry event ' +
         'not correspond to the one which sent the creation transaction');
