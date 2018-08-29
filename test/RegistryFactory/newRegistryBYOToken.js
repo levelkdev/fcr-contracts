@@ -63,7 +63,6 @@ contract('RegistryFactory', (accounts) => {
 
       // verify: registry's token
       const registryToken = await registry.token();
-      const paramer = await registry.name.call();
 
       assert.strictEqual(
         registryToken,

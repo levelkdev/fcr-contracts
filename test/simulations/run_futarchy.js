@@ -54,7 +54,6 @@ contract('simulate TCR apply/futarchyChallenge/resolve', (accounts) => {
       }
       const dutchExchange         = await DutchExchange.deployed()
       const etherToken            = await EtherToken.deployed()
-      // const parameterizer         = await Parameterizer.deployed()
       const outcomeToken          = await OutcomeToken.deployed()
       const eventFactory          = await EventFactory.deployed()
       const marketFactory         = await StandardMarketWithPriceLoggerFactory.deployed()
@@ -84,7 +83,7 @@ contract('simulate TCR apply/futarchyChallenge/resolve', (accounts) => {
 
       // await Registry.new(token.address, futarchyChallengeFactory.address, parameterizer.address, 'best registry' )
       await logTCRBalances(accounts, token, registry)
- 
+
       const fcr = fcrjs(web3_beta, _.merge(fcrJsConfig.local, {
         registryAddress: registry.address,
         tokenAddress: token.address,

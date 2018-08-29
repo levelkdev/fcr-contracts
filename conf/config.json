@@ -43,5 +43,10 @@
       { "address": "0x5663B1Bde9065895320b1aF983cE3d1d0E33171c",
         "amount": "100000000000000000000000000" }
     ]
+  },
+  "challengeFactory": {
+    "tradingPeriod": 3600,
+    "timeToPriceResolution": 86400,
+    "stakeAmount": 10
   }
 }

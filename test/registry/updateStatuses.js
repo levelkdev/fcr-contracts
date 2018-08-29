@@ -2,13 +2,14 @@
 /* global assert contract */
 const fs = require('fs');
 const BN = require('bignumber.js');
-
 const config = JSON.parse(fs.readFileSync('./conf/config.json'));
 const paramConfig = config.paramDefaults;
+const FutarchyOracle = artifacts.require('FutarchyOracle')
 
 const utils = require('../utils.js');
 
 const bigTen = number => new BN(number.toString(10), 10);
+const toWei = number => new BN(number * 10 ** 18)
 
 contract('Registry', (accounts) => {
   describe('Function: updateStatuses', () => {
@@ -17,24 +18,30 @@ contract('Registry', (accounts) => {
 
     let token;
     let registry;
+    let fcr;
 
-    before(async () => {
-      const { registryProxy, tokenInstance } = await utils.getProxies();
+    beforeEach(async () => {
+      const { registryProxy, tokenInstance, fcrjs } = await utils.getProxies()
       registry = registryProxy;
       token = tokenInstance;
+      fcr = fcrjs;
 
-      await utils.approveProxies(accounts, token, false, false, registry);
+      let minDeposit = toWei(paramConfig.minDeposit)
+      await utils.approveProxies(accounts, token, false, false, registry)
     });
 
-    it('should whitelist an array of 1 listing', async () => {
-      const listing = utils.getListingHash('whitelistmepls.io');
-      await utils.as(applicant, registry.apply, listing, minDeposit.toNumber(), '');
-      await utils.increaseTime(paramConfig.applyStageLength + 1);
+    it.only('should whitelist an array of 1 listing', async () => {
+      const listingTitle = 'whitelistmepls.io'
+      const listingHash = fcr.registry.getListingHash('whitelistmepls.io')
 
-      const listings = [listing];
-      await utils.as(applicant, registry.updateStatuses, listings);
-      const wl = await registry.listings.call(listing);
-      assert.strictEqual(wl[1], true, 'should have been whitelisted');
+      await fcr.registry.apply(applicant, listingTitle, minDeposit, '')
+      // const time = paramConfig.applyStageLength + 1
+      // await utils.increaseTime(time);
+      //
+      // const listings = [listing];
+      // await utils.as(applicant, registry.updateStatuses, listings);
+      // const wl = await registry.listings.call(listing);
+      // assert.strictEqual(wl[1], true, 'should have been whitelisted');
     });
 
     it('should whitelist an array of 2 listings', async () => {
@@ -84,15 +91,16 @@ contract('Registry', (accounts) => {
     });
 
     it('should not whitelist an array of 1 listing that failed a challenge', async () => {
-      const listing = utils.getListingHash('dontwhitelist.net');
-      await utils.as(applicant, registry.apply, listing, minDeposit, '');
-      await utils.as(challenger, registry.createChallenge, listing, '');
+      const trader = accounts[3]
+      const listingTitle = 'dontwhitelist.net'
+      const listingHash  = await fcr.registry.getListingHash(listingTitle)
 
-      const plcrComplete = paramConfig.revealStageLength + paramConfig.commitStageLength + 1;
-      await utils.increaseTime(plcrComplete);
-      const listings = [listing];
-      await registry.updateStatuses(listings);
-      const result = await registry.isWhitelisted(listing);
+      await fcr.registry.apply(applicant, listingTitle, minDeposit, '')
+
+      await utils.createAndStartChallenge(fcr, listingTitle, challenger);
+      await utils.makeChallengeFail(fcr, listingTitle, trader);
+
+      const result = await registry.isWhitelisted(listingHash);
       assert.strictEqual(result, false, 'Listing should not have been whitelisted');
     });
 
