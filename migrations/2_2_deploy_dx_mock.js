@@ -19,9 +19,7 @@ const OWLAirdrop = artifacts.require('OWLAirdrop')
 let currentETHPrice = (1100 * (10 ** 18))
 
 module.exports = (deployer, network, accounts) => {
-  console.log('DXMOCK')
   if (network == 'development') {
-    console.log('DEPLOYING DX MOCK')
     return deployer.deploy(Math)
       // Linking
       .then(() => deployer.link(Math, [StandardToken, EtherToken, TokenGNO, TokenMGN, TokenOWL, TokenOWLProxy, OWLAirdrop]))
@@ -52,7 +50,6 @@ module.exports = (deployer, network, accounts) => {
       // @dev DX Constructor creates exchange
       .then(() => Proxy.deployed())
       .then(p => {
-        console.log('SETUP DUTCH EXCHANGE')
         return DutchExchangeMock.at(p.address).setupDutchExchange(
           TokenMGN.address,
           TokenOWLProxy.address,
