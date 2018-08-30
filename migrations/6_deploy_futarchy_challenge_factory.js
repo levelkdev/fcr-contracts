@@ -16,7 +16,6 @@ const CentralizedTimedOracleFactory = artifacts.require('CentralizedTimedOracleF
 const EventFactory = artifacts.require('EventFactory')
 const LMSRMarketMaker = artifacts.require('LMSRMarketMaker')
 const EtherToken = artifacts.require('EtherToken')
-const DutchExchange = artifacts.require('DutchExchangeMock')
 
 const fs = require('fs')
 const config = JSON.parse(fs.readFileSync('../conf/config.json'))
@@ -27,6 +26,8 @@ const timeToPriceResolution = 60 * 60 * 24 * 7 // a week
 const futarchyFundingAmount = paramConfig.minDeposit * 10 ** 18
 
 module.exports = (deployer, network) => {
+  const DutchExchange = network == 'development' ? artifacts.require('DutchExchangeMock') : artifacts.require('DutchExchange') 
+
   return deployer.then(async () => {
     await deployer.deploy(Math)
     deployer.link(Math, [EtherToken, StandardMarketFactory, StandardMarketWithPriceLoggerFactory, FutarchyChallengeFactory, EventFactory, LMSRMarketMaker, CategoricalEvent, ScalarEvent, OutcomeToken])

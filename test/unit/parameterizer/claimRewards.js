@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 /* global assert contract */
 const fs = require('fs');
-const utils = require('../utils');
+const utils = require('../../utils')(artifacts);
 
 const config = JSON.parse(fs.readFileSync('./conf/config.json'));
 const paramConfig = config.paramDefaults;
