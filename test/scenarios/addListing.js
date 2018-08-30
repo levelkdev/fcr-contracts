@@ -1,8 +1,6 @@
 import _ from 'lodash'
 import fcrjs from 'fcr-js'
 import Web3_beta from 'web3'
-import distributeToken from '../helpers/distributeToken'
-import runDutchExchangeAuction from '../helpers/runDutchExchangeAuction'
 
 /*
  * Add Listing
@@ -42,13 +40,12 @@ module.exports = async (artifacts, web3, config, fcrJsConfig, utils) => {
   const token = await Token.deployed()
   const etherToken = await EtherToken.deployed()
 
-  await distributeToken(accounts, token)
+  await utils.distributeToken(accounts, token)
 
   // TODO: implement this
-  // await distributeEtherToken(accounts, etherToken)
+  // await utils.distributeEtherToken(accounts, etherToken)
 
   const dutchExchange         = await DutchExchange.deployed()
-  const etherToken            = await EtherToken.deployed()
   const outcomeToken          = await OutcomeToken.deployed()
   const eventFactory          = await EventFactory.deployed()
   const marketFactory         = await StandardMarketWithPriceLoggerFactory.deployed()

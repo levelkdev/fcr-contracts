@@ -321,6 +321,30 @@ module.exports = (artifacts) => {
       const weiQuotient = utils.divideAndGetWei(y, z);
       return utils.multiplyFromWei(x, weiQuotient);
     },
+
+    runDutchExchangeAuction: async (web3, dutchExchange, token1, token2) => {
+      const { accounts } = web3.eth
+      const [ auctionCreator, auctionBuyer ] = accounts
+    
+      // TODO: implement dutch exchange auction setup and trading
+    
+      const b = await token2.balanceOf(auctionBuyer)
+      return b
+    },
+
+    distributeToken: async (accounts, token) => {
+      const amount = 100 * 10 ** 18
+      let receipts = []
+      let i = 0;
+      for(i = 0; i < accounts.length; i++) {
+        if (i == 0) continue
+        const account = accounts[i]
+        console.log(`token.transfer: accounts[0] -> ${amount / 10 ** 18} -> accounts[${i}]`)
+        const receipt = await token.transfer(account, amount)
+        receipts.push(receipts)
+      }
+      return receipts
+    }
   };
 
   return utils
