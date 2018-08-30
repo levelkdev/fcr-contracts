@@ -96,12 +96,8 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
     );
   }
 
-  event Debug(address token1, address token2, uint currentAuctionIndex);
-
   function determinePriceBounds() internal returns (int upperBound, int lowerBound) {
     uint currentAuctionIndex = dutchExchange.getAuctionIndex(token, comparatorToken);
-
-    Debug(token, comparatorToken, currentAuctionIndex);
 
     uint firstReferencedIndex = currentAuctionIndex - NUM_PRICE_POINTS;
 
@@ -110,9 +106,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
     uint den;
     uint avgPrice;
     while(i < NUM_PRICE_POINTS) {
-      // (num, den) = dutchExchange.getPriceInPastAuction(token, comparatorToken, firstReferencedIndex + i);
-      num = 10;
-      den = 1;
+      (num, den) = dutchExchange.getPriceInPastAuction(token, comparatorToken, firstReferencedIndex + i);
 
       avgPrice += (num * 10**18)/uint(den);
       i++;
