@@ -4,7 +4,7 @@ require('babel-polyfill')
 const fs = require('fs')
 const config = require('../conf/config.json')
 const fcrJsConfig = require('./fcrJsConfig.json')
-const utils = require('./utils.js')(artifacts)
+const utils = require('./utils.js')
 
 module.exports = (callback) => {
   const scenarioName = process.argv[4]

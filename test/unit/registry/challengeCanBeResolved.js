@@ -7,4 +7,3 @@ contract('Registry', () => {
     it('should return false if the poll either doesnt exist, or its still in contention');
   });
 });
-

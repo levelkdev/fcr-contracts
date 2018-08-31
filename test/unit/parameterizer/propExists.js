@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 /* global assert contract */
-const utils = require('../../utils')(artifacts);
+const utils = require('../../utils')
 
 contract('Parameterizer', (accounts) => {
   describe('Function: propExists', () => {
