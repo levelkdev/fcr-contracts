@@ -6,7 +6,7 @@ const BN = require('bignumber.js');
 const config = JSON.parse(fs.readFileSync('./conf/config.json'));
 const paramConfig = config.paramDefaults;
 
-const utils = require('../../utils.js')(artifacts);
+const utils = require('../../utils.js')
 
 const toWei = number => new BN(number * 10 ** 18);
 

@@ -3,7 +3,7 @@
 const fs = require('fs');
 
 const config = JSON.parse(fs.readFileSync('./conf/config.json'));
-const utils = require('../../utils.js')(artifacts);
+const utils = require('../../utils.js')
 
 contract('Registry', (accounts) => {
   describe('Function: Registry (constructor)', () => {
