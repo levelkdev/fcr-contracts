@@ -1,5 +1,5 @@
 module.exports = (deployer, network, accounts) => {
-  if (network == 'integration_testing') {
+  if (network == 'development') {
     const dxMigrateDependencies = require('@gnosis.pm/dx-contracts/src/migrations/2_migrate_dependencies')
     const dxDeployPriceFeed = require('@gnosis.pm/dx-contracts/src/migrations/3_deploy_price_feed')
     const deployFrt = require('@gnosis.pm/dx-contracts/src/migrations/4_deploy_FRT')

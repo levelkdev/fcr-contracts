@@ -18,10 +18,9 @@ module.exports = (deployer, network) => {
     const EventFactory = artifacts.require('EventFactory')
     const LMSRMarketMaker = artifacts.require('LMSRMarketMaker')
     const EtherToken = artifacts.require('EtherToken')
-    const DutchExchange = artifacts.require('DutchExchange') 
+    const DutchExchange = artifacts.require('DutchExchange')
 
-    const fs = require('fs')
-    const config = JSON.parse(fs.readFileSync('../conf/config.json'))
+    const config = require('../conf/config.json')
     const paramConfig = config.paramDefaults
 
     const tradingPeriod = 60 * 60

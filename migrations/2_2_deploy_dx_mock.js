@@ -1,8 +1,7 @@
 module.exports = (deployer, network, accounts) => {
-  if (network !== 'development'
-        && network !== 'unit_testing'
-        && network !== 'integration_testing') 
-  {
+  if (network !== 'development' && network !== 'unit_testing') {
+    // TODO: consider removing this from migrations entirely, could
+    //       be moved to unit test setup
     const Math = artifacts.require('@gnosis.pm/gnosis-core-contracts/Math')
 
     const DutchExchangeMock = artifacts.require('DutchExchangeMock')

@@ -1,6 +1,6 @@
-import _ from 'lodash'
-import fcrjs from 'fcr-js'
-import Web3_beta from 'web3'
+// import _ from 'lodash'
+// import fcrjs from 'fcr-js'
+// import Web3_beta from 'web3'
 
 /*
  * Add Listing
@@ -15,11 +15,15 @@ import Web3_beta from 'web3'
  * 
  */
 
-module.exports = async (artifacts, web3, config, fcrJsConfig, utils) => {
+module.exports = async (artifacts, web3) => {
   const { accounts } = web3.eth
-  const paramConfig = config.paramDefaults
+  
+  // TODO: create integration testing config, remove hardcoded config
+  const paramConfig = {
+    minDeposit: 10
+  }
 
-  const Parameterizer = artifacts.require('./Parameterizer.sol')
+  const Parameterizer = artifacts.require('Parameterizer.sol')
   const Registry = artifacts.require('Registry.sol')
   const Token = artifacts.require('EIP20.sol')
   const OutcomeToken = artifacts.require('OutcomeToken')
@@ -40,22 +44,19 @@ module.exports = async (artifacts, web3, config, fcrJsConfig, utils) => {
   const token = await Token.deployed()
   const etherToken = await EtherToken.deployed()
 
-  await utils.distributeToken(accounts, token)
-
-  // TODO: implement this
+  // TODO: distribute tokens without utils.js
+  // await utils.distributeToken(accounts, token)
   // await utils.distributeEtherToken(accounts, etherToken)
 
   const dutchExchange         = await DutchExchange.deployed()
   const outcomeToken          = await OutcomeToken.deployed()
-  const eventFactory          = await EventFactory.deployed()
-  const marketFactory         = await StandardMarketWithPriceLoggerFactory.deployed()
-  const parameterizer         = await Parameterizer.deployed()
   const scalarPriceOracleFactory = await ScalarPriceOracleFactory.new(token.address, etherToken.address, dutchExchange.address)
   const futarchyOracleFactory = await FutarchyOracleFactory.deployed()
   const lmsrMarketMaker = await LMSRMarketMaker.new()
   const timeToPriceResolution = 60 * 60 * 24 * 7 // a week
 
-  await runDutchExchangeAuction(web3, dutchExchange, token, etherToken)
+  // TODO: implement dutch exchange auction and trading
+  // await runDutchExchangeAuction(web3, dutchExchange, token, etherToken)
 
   const futarchyChallengeFactory = await FutarchyChallengeFactory.new(
     token.address,
@@ -77,34 +78,34 @@ module.exports = async (artifacts, web3, config, fcrJsConfig, utils) => {
   //   console.log(err, res);
   // });
 
-  console.log('----------------------- CREATING REGISTRY -----------------------')
-  const { registryProxy} = await utils.getProxiesBYO(token.address);
-  const registry = registryProxy;
+  // console.log('----------------------- CREATING REGISTRY -----------------------')
+  // const { registryProxy} = await utils.getProxiesBYO(token.address);
+  // const registry = registryProxy;
 
-  // await Registry.new(token.address, futarchyChallengeFactory.address, parameterizer.address, 'best registry' )
-  await logTCRBalances(accounts, token, registry)
+  // // await Registry.new(token.address, futarchyChallengeFactory.address, parameterizer.address, 'best registry' )
+  // await logTCRBalances(accounts, token, registry)
 
-  const fcr = fcrjs(web3_beta, _.merge(fcrJsConfig.local, {
-    registryAddress: registry.address,
-    tokenAddress: token.address,
-    LMSRMarketMakerAddress: lmsrMarketMaker.address
-  }))
-
-
-  console.log('----------------------- SUBMITTING APPLICATION -----------------------')
-  await token.approve(registry.address, approvalAmount, {from: applicant})
-  await fcr.registry.apply(applicant, 'nochallenge.net', futarchyFundingAmount, '')
-  await logTCRBalances(accounts, token, registry)
+  // const fcr = fcrjs(web3_beta, _.merge(fcrJsConfig.local, {
+  //   registryAddress: registry.address,
+  //   tokenAddress: token.address,
+  //   LMSRMarketMakerAddress: lmsrMarketMaker.address
+  // }))
 
 
+  // console.log('----------------------- SUBMITTING APPLICATION -----------------------')
+  // await token.approve(registry.address, approvalAmount, {from: applicant})
+  // await fcr.registry.apply(applicant, 'nochallenge.net', futarchyFundingAmount, '')
+  // await logTCRBalances(accounts, token, registry)
 
 
-  console.log('----------------------- SUBMITTING CHALLENGE -----------------------')
-  const listingHash = web3_beta.utils.fromAscii('nochallenge.net')
-  const receipt = await utils.as(challenger, registry.createChallenge, listingHash, '')
-  const { challengeID } = receipt.logs[0].args
-  const challenge = await getFutarchyChallenge(challengeID, registry)
-  await logTCRBalances(accounts, token, registry, challenge)
+
+
+  // console.log('----------------------- SUBMITTING CHALLENGE -----------------------')
+  // const listingHash = web3_beta.utils.fromAscii('nochallenge.net')
+  // const receipt = await utils.as(challenger, registry.createChallenge, listingHash, '')
+  // const { challengeID } = receipt.logs[0].args
+  // const challenge = await getFutarchyChallenge(challengeID, registry)
+  // await logTCRBalances(accounts, token, registry, challenge)
 
 
 
