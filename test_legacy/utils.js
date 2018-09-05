@@ -3,21 +3,11 @@
 
 import fcr_js from 'fcr-js'
 const Eth = require('ethjs');
-const HttpProvider = require('ethjs-provider-http');
-const EthRPC = require('ethjs-rpc');
 const abi = require('ethereumjs-abi');
 const fs = require('fs');
-const Web3_beta = require('web3')
 const BigNumber = require('bignumber.js');
 
-const fcrJsConfig = JSON.parse(fs.readFileSync('./test/fcrJsConfig.json'))
-const web3_beta = new Web3_beta(new Web3_beta.providers.HttpProvider(fcrJsConfig.local.web3Url))
-
-const ethRPC = new EthRPC(new HttpProvider('http://localhost:8545'));
-const ethQuery = new Eth(new HttpProvider('http://localhost:8545'));
-
 const PLCRVoting = artifacts.require('PLCRVoting.sol');
-const FutarchyChallenge = artifacts.require('FutarchyChallenge.sol');
 const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory.sol');
 const FutarchyOracleFactory = artifacts.require('FutarchyOracleFactory')
 const FutarchyOracle = artifacts.require('FutarchyOracle')
@@ -29,7 +19,6 @@ const Parameterizer = artifacts.require('Parameterizer.sol');
 const Registry = artifacts.require('Registry.sol');
 const Token = artifacts.require('EIP20.sol');
 const EtherToken = artifacts.require('EtherToken.sol')
-
 const RegistryFactory = artifacts.require('RegistryFactory.sol');
 
 const config = JSON.parse(fs.readFileSync('./conf/config.json'));
@@ -95,8 +84,7 @@ const utils = {
       tokenInstance,
       votingProxy,
       paramProxy,
-      registryProxy,
-      fcrjs,
+      registryProxy
     };
     return proxies;
   },

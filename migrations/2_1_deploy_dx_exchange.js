@@ -1,14 +1,12 @@
-/* eslint no-multi-spaces: 0, no-console: 0 */
-
-const dxMigrateDependencies = require('@gnosis.pm/dx-contracts/src/migrations/2_migrate_dependencies')
-const dxDeployPriceFeed = require('@gnosis.pm/dx-contracts/src/migrations/3_deploy_price_feed')
-const deployFrt = require('@gnosis.pm/dx-contracts/src/migrations/4_deploy_FRT')
-const deployDx = require('@gnosis.pm/dx-contracts/src/migrations/5_deploy_DX')
-const setupDx = require('@gnosis.pm/dx-contracts/src/migrations/6_setup_DX')
-const setDxAsFrtMinter = require('@gnosis.pm/dx-contracts/src/migrations/7_set_DX_as_FRT_minter')
-
 module.exports = (deployer, network, accounts) => {
-  if (network !== 'development') {
+  if (network == 'development') {
+    const dxMigrateDependencies = require('@gnosis.pm/dx-contracts/src/migrations/2_migrate_dependencies')
+    const dxDeployPriceFeed = require('@gnosis.pm/dx-contracts/src/migrations/3_deploy_price_feed')
+    const deployFrt = require('@gnosis.pm/dx-contracts/src/migrations/4_deploy_FRT')
+    const deployDx = require('@gnosis.pm/dx-contracts/src/migrations/5_deploy_DX')
+    const setupDx = require('@gnosis.pm/dx-contracts/src/migrations/6_setup_DX')
+    const setDxAsFrtMinter = require('@gnosis.pm/dx-contracts/src/migrations/7_set_DX_as_FRT_minter')
+
     return deployer.then(() => {
       logDxContractMigration('2_migrate_dependencies')
       return dxMigrateDependencies({

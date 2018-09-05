@@ -1,25 +1,27 @@
-const Math = artifacts.require('@gnosis.pm/gnosis-core-contracts/Math')
-
-const DutchExchangeMock = artifacts.require('DutchExchangeMock')
-const EtherToken = artifacts.require('EtherToken')
-const PriceFeed = artifacts.require('PriceFeed')
-const PriceOracleInterface = artifacts.require('PriceOracleInterface')
-const StandardToken = artifacts.require('StandardToken')
-const TokenGNO = artifacts.require('TokenGNO')
-const TokenRDN = artifacts.require('TokenRDN')
-const TokenOMG = artifacts.require('TokenOMG')
-const TokenOWL = artifacts.require('TokenOWL')
-const TokenOWLProxy = artifacts.require('TokenOWLProxy')
-
-const TokenMGN = artifacts.require('TokenFRT')
-const Medianizer = artifacts.require('Medianizer')
-const Proxy = artifacts.require('Proxy')
-const OWLAirdrop = artifacts.require('OWLAirdrop')
-// ETH price as reported by MakerDAO with 18 decimal places
-let currentETHPrice = (1100 * (10 ** 18))
-
 module.exports = (deployer, network, accounts) => {
-  if (network == 'development') {
+  if (network !== 'development' && network !== 'unit_testing') {
+    // TODO: consider removing this from migrations entirely, could
+    //       be moved to unit test setup
+    const Math = artifacts.require('@gnosis.pm/gnosis-core-contracts/Math')
+
+    const DutchExchangeMock = artifacts.require('DutchExchangeMock')
+    const EtherToken = artifacts.require('EtherToken')
+    const PriceFeed = artifacts.require('PriceFeed')
+    const PriceOracleInterface = artifacts.require('PriceOracleInterface')
+    const StandardToken = artifacts.require('StandardToken')
+    const TokenGNO = artifacts.require('TokenGNO')
+    const TokenRDN = artifacts.require('TokenRDN')
+    const TokenOMG = artifacts.require('TokenOMG')
+    const TokenOWL = artifacts.require('TokenOWL')
+    const TokenOWLProxy = artifacts.require('TokenOWLProxy')
+
+    const TokenMGN = artifacts.require('TokenFRT')
+    const Medianizer = artifacts.require('Medianizer')
+    const Proxy = artifacts.require('Proxy')
+    const OWLAirdrop = artifacts.require('OWLAirdrop')
+    // ETH price as reported by MakerDAO with 18 decimal places
+    let currentETHPrice = (1100 * (10 ** 18))
+
     return deployer.deploy(Math)
       // Linking
       .then(() => deployer.link(Math, [StandardToken, EtherToken, TokenGNO, TokenMGN, TokenOWL, TokenOWLProxy, OWLAirdrop]))

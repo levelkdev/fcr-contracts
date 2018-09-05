@@ -21,7 +21,7 @@ module.exports = {
       gas: 6500000,
       gasPrice: 5000000000
     },
-    testing: {
+    unit_testing: {
       host: 'localhost',
       network_id: '*',
       port: 8545,
