@@ -10,7 +10,7 @@ const fs = require('fs');
 const Web3_beta = require('web3')
 const BigNumber = require('bignumber.js');
 
-const fcrJsConfig = JSON.parse(fs.readFileSync('./test/fcrJsConfig.json'))
+const fcrJsConfig = require('./fcrJsConfig.json')
 const web3_beta = new Web3_beta(new Web3_beta.providers.HttpProvider(fcrJsConfig.local.web3Url))
 
 const ethRPC = new EthRPC(new HttpProvider('http://localhost:8545'));
