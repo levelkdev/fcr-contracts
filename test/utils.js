@@ -1,15 +1,11 @@
 /* eslint-env mocha */
 /* global artifacts */
 
-console.log('PRE IMPORTS')
-
 import fcr_js from 'fcr-js'
 const Eth = require('ethjs');
 const abi = require('ethereumjs-abi');
 const fs = require('fs');
 const BigNumber = require('bignumber.js');
-
-console.log('requires done')
 
 const PLCRVoting = artifacts.require('PLCRVoting.sol');
 const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory.sol');
@@ -25,17 +21,11 @@ const Token = artifacts.require('EIP20.sol');
 const EtherToken = artifacts.require('EtherToken.sol')
 const RegistryFactory = artifacts.require('RegistryFactory.sol');
 
-console.log('artifcats done')
-
 const config = JSON.parse(fs.readFileSync('./conf/config.json'));
 const paramConfig = config.paramDefaults;
 
-console.log('config done')
-
 const BN = small => new Eth.BN(small.toString(10), 10);
 const toWei = number => new BN(number * 10 ** 18)
-
-console.log('POST IMPORTS')
 
 const utils = {
   getProxies: async () => {
