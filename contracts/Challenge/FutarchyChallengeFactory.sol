@@ -87,7 +87,6 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
       _listingOwner,
       stakeAmount,
       tradingPeriod,
-      timeToPriceResolution,
       upperBound,
       lowerBound,
       futarchyOracleFactory,
