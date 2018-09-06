@@ -20,7 +20,6 @@ contract  FutarchyChallenge is ChallengeInterface {
   bool public marketsAreClosed;      // true if futarchy markets are closed
   uint public stakeAmount;           // number of tokens to stake for either party during challenge
   uint public tradingPeriod;         // duration for open trading before futarchy decision resolution
-  uint public timeToPriceResolution; // Duration from start of prediction markets until date of final price resolution
   int public upperBound;
   int public lowerBound;
   bool public isFunded;
@@ -43,7 +42,6 @@ contract  FutarchyChallenge is ChallengeInterface {
   /// @param _listingOwner              Address of the listing owner
   /// @param _stakeAmount               Number of tokens to stake for either party during challenge
   /// @param _tradingPeriod             Duration for open trading on scalar prediction markets
-  /// @param _timeToPriceResolution     Duration from start of prediction markets until date of final price resolution
   /// @param _futarchyOracleFactory     Factory to create futarchyOracle
   /// @param _scalarPriceOracle         Factory to create scalarPriceOracle for scalar prediction markets
   /// @param _lmsrMarketMaker           LMSR Market Maker for scalar prediction markets
@@ -54,7 +52,6 @@ contract  FutarchyChallenge is ChallengeInterface {
     address _listingOwner,
     uint _stakeAmount,
     uint _tradingPeriod,
-    uint _timeToPriceResolution,
     int _upperBound,
     int _lowerBound,
     FutarchyOracleFactory _futarchyOracleFactory,
@@ -67,7 +64,6 @@ contract  FutarchyChallenge is ChallengeInterface {
     registry = _registryAddr;
     stakeAmount = _stakeAmount;
     tradingPeriod = _tradingPeriod;
-    timeToPriceResolution = _timeToPriceResolution;
     upperBound = _upperBound;
     lowerBound = _lowerBound;
     futarchyOracleFactory = _futarchyOracleFactory;
