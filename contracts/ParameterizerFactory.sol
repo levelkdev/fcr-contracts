@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
-import "plcr-revival/PLCRFactory.sol";
-import "plcr-revival/PLCRVoting.sol";
+import "plcr-revival/contracts/PLCRFactory.sol";
+import "plcr-revival/contracts/PLCRVoting.sol";
 import "./Parameterizer.sol";
 import "tokens/eip20/EIP20.sol";
 

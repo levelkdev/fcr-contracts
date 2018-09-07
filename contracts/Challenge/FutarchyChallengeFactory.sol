@@ -15,7 +15,6 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
   // STATE:
   // -------
   // GLOBAL VARIABLES
-  address public token;                 // Address of the TCR's intrinsic ERC20 token
   address public comparatorToken;       // Address of token to which TCR's intrinsic token will be compared
   uint public stakeAmount;              // Amount that must be staked to initiate a Challenge
   uint public tradingPeriod;            // Duration for open trading on futarchy prediction markets
@@ -31,8 +30,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
   // ------------
   // CONSTRUCTOR:
   // ------------
-  /// @dev Contructor                  Sets the global state of the factory
-  /// @param _tokenAddr                Address of the TCR's intrinsic ERC20 token
+  /// @dev Constructor                 Sets the global state of the factory
   /// @param _comparatorToken          Address of token to which TCR's intrinsic token value will be compared
   /// @param _stakeAmount              Amount that must be staked to initiate a Challenge
   /// @param _tradingPeriod            Duration for open trading on futarchy prediction markets before futarchy resolution
@@ -41,7 +39,6 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
   /// @param _scalarPriceOracleFactory Factory for creating Oracles to resolve Futarchy's scalar prediction markets
   /// @param _lmsrMarketMaker          LMSR Market Maker for futarchy's prediction markets
   function FutarchyChallengeFactory(
-    address _tokenAddr,
     address _comparatorToken,
     uint _stakeAmount,
     uint _tradingPeriod,
@@ -51,14 +48,13 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
     LMSRMarketMaker _lmsrMarketMaker,
     address _dutchExchange
   ) public {
-    token                 = _tokenAddr;
     comparatorToken       = _comparatorToken;
     stakeAmount           = _stakeAmount;
     tradingPeriod         = _tradingPeriod;
     timeToPriceResolution = _timeToPriceResolution;
 
     futarchyOracleFactory         = _futarchyOracleFactory;
-    scalarPriceOracleFactory = _scalarPriceOracleFactory;
+    scalarPriceOracleFactory      = _scalarPriceOracleFactory;
     lmsrMarketMaker               = _lmsrMarketMaker;
     dutchExchange                 = IDutchExchange(_dutchExchange);
   }
@@ -73,7 +69,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
   function createChallenge(address _registry, address _challenger, address _listingOwner) external returns (ChallengeInterface) {
     int upperBound;
     int lowerBound;
-    (upperBound, lowerBound) = determinePriceBounds();
+    (upperBound, lowerBound) = determinePriceBounds(Registry(_registry).token());
 
     uint resolutionDate = now + timeToPriceResolution;
     ScalarPriceOracle scalarPriceOracle = scalarPriceOracleFactory.createScalarPriceOracle(
@@ -81,8 +77,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
     );
 
     return new FutarchyChallenge(
-      token,
-      _registry,
+      Registry(_registry),
       _challenger,
       _listingOwner,
       stakeAmount,
@@ -96,8 +91,8 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
     );
   }
 
-  function determinePriceBounds() internal returns (int upperBound, int lowerBound) {
-    uint currentAuctionIndex = dutchExchange.getAuctionIndex(token, comparatorToken);
+  function determinePriceBounds(ERC20 _token) internal returns (int upperBound, int lowerBound) {
+    uint currentAuctionIndex = dutchExchange.getAuctionIndex(_token, comparatorToken);
 
     uint firstReferencedIndex = currentAuctionIndex - NUM_PRICE_POINTS;
 
@@ -106,7 +101,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
     uint den;
     uint avgPrice;
     while(i < NUM_PRICE_POINTS) {
-      (num, den) = dutchExchange.getPriceInPastAuction(token, comparatorToken, firstReferencedIndex + i);
+      (num, den) = dutchExchange.getPriceInPastAuction(_token, comparatorToken, firstReferencedIndex + i);
 
       avgPrice += (num * 10**18)/uint(den);
       i++;

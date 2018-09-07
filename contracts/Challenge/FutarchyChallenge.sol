@@ -1,6 +1,7 @@
 pragma solidity ^0.4.24;
 import '@gnosis.pm/gnosis-core-contracts/contracts/Oracles/FutarchyOracleFactory.sol';
 import '@gnosis.pm/gnosis-core-contracts/contracts/MarketMakers/LMSRMarketMaker.sol';
+import '../Registry.sol';
 import "./Oracles/ScalarPriceOracle.sol";
 import "./ChallengeInterface.sol";
 
@@ -29,16 +30,15 @@ contract  FutarchyChallenge is ChallengeInterface {
   FutarchyOracleFactory public futarchyOracleFactory;        // Factory to create FutarchyOracle
   ScalarPriceOracle public scalarPriceOracle;                // Oracle to resolve scalar prediction markets
   LMSRMarketMaker public lmsrMarketMaker;                    // MarketMaker for scalar prediction markets
-  ERC20 public token;                                        // Address of the TCR's intrinsic ERC20 token
-  address public registry;                                   // Address of TCR
+  Registry public registry;                                  // Address of TCR
   uint public winningMarketIndex;                            // Index of scalar prediction market with greatest average price for long token
 
 
   // ------------
   // CONSTRUCTOR:
   // ------------
-  /// @dev Contructor                   Sets up majority of the FutarchyChallenge global state variables
-  /// @param _tokenAddr                 Address of the TCR's intrinsic ERC20 token
+  /// @dev Constructor                  Sets up majority of the FutarchyChallenge global state variables
+  /// @param _registry                  Address of the registry
   /// @param _challenger                Address of the challenger
   /// @param _listingOwner              Address of the listing owner
   /// @param _stakeAmount               Number of tokens to stake for either party during challenge
@@ -48,8 +48,7 @@ contract  FutarchyChallenge is ChallengeInterface {
   /// @param _scalarPriceOracle         Factory to create scalarPriceOracle for scalar prediction markets
   /// @param _lmsrMarketMaker           LMSR Market Maker for scalar prediction markets
   function FutarchyChallenge(
-    address _tokenAddr,
-    address _registryAddr,
+    Registry _registry,
     address _challenger,
     address _listingOwner,
     uint _stakeAmount,
@@ -61,10 +60,9 @@ contract  FutarchyChallenge is ChallengeInterface {
     ScalarPriceOracle _scalarPriceOracle,
     LMSRMarketMaker _lmsrMarketMaker
   ) public {
+    registry = _registry;
     challenger = _challenger;
     listingOwner = _listingOwner;
-    token = ERC20(_tokenAddr);
-    registry = _registryAddr;
     stakeAmount = _stakeAmount;
     tradingPeriod = _tradingPeriod;
     timeToPriceResolution = _timeToPriceResolution;
@@ -88,7 +86,7 @@ contract  FutarchyChallenge is ChallengeInterface {
     uint _startDate = now;
 
     futarchyOracle = futarchyOracleFactory.createFutarchyOracle(
-      token,
+      registry.token(),
       scalarPriceOracle,
       2,
       lowerBound,
@@ -106,8 +104,8 @@ contract  FutarchyChallenge is ChallengeInterface {
 
   function fund() public {
     require(isStarted && !isFunded);
-    require(token.transferFrom(msg.sender, this, stakeAmount));
-    require(token.approve(futarchyOracle, stakeAmount));
+    require(registry.token().transferFrom(msg.sender, this, stakeAmount));
+    require(registry.token().approve(futarchyOracle, stakeAmount));
     futarchyOracle.fund(stakeAmount);
     isFunded = true;
 
@@ -130,13 +128,13 @@ contract  FutarchyChallenge is ChallengeInterface {
 
   function winnerRewardAmount() public view returns (uint256) {
     require(marketsAreClosed);
-    return token.balanceOf(this);
+    return registry.token().balanceOf(this);
   }
 
   function close() public {
     futarchyOracle.close();
     marketsAreClosed = true;
-    require(token.approve(registry, token.balanceOf(this)));
+    require(registry.token().approve(registry, registry.token().balanceOf(this)));
   }
 
   function setScalarOutcome() public {
