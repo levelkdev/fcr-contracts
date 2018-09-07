@@ -59,7 +59,6 @@ module.exports = async (artifacts, web3) => {
   // await runDutchExchangeAuction(web3, dutchExchange, token, etherToken)
 
   const futarchyChallengeFactory = await FutarchyChallengeFactory.new(
-    token.address,
     etherToken.address,
     futarchyFundingAmount,
     tradingPeriod,
@@ -69,6 +68,9 @@ module.exports = async (artifacts, web3) => {
     lmsrMarketMaker.address,
     dutchExchange.address
   )
+
+  console.log('futarchyChallengeFactory: ', futarchyChallengeFactory.address)
+  console.log('')
 
   // const allEvents = futarchyChallengeFactory.allEvents({
   //   fromBlock: 0,
