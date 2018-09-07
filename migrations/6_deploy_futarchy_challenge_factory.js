@@ -2,7 +2,6 @@
 
 module.exports = (deployer, network) => {
   if (network !== 'unit_testing') {
-    const Token = artifacts.require('tokens/eip20/EIP20.sol');
     const Math = artifacts.require('@gnosis.pm/gnosis-core-contracts/Math')
     const CategoricalEvent = artifacts.require('CategoricalEvent')
     const ScalarEvent = artifacts.require('ScalarEvent')
@@ -46,7 +45,6 @@ module.exports = (deployer, network) => {
 
       await deployer.deploy(
         FutarchyChallengeFactory,
-        Token.address,
         EtherToken.address,
         futarchyFundingAmount,
         tradingPeriod,
