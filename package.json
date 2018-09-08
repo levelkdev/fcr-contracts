@@ -29,6 +29,7 @@
     "@gnosis.pm/owl-token": "git://git@github.com:levelkdev/owl-token#6d09154539b9dd7d2e9a32f3606f802086484b28",
     "@gnosis.pm/util-contracts": "git://git@github.com:levelkdev/util-contracts#c8c4c50a8474fd99b9b576bcc0bf42a0505f3752",
     "openzeppelin-solidity": "github:gnosis/openzeppelin-solidity#fix-signed-safemath",
+    "plcr-revival": "git://git@github.com:levelkdev/PLCRVoting#b48aeab3ea3411997280dceca05d6d452891b818",
     "babel-cli": "^6.24.1",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
     "babel-plugin-transform-runtime": "^6.23.0",

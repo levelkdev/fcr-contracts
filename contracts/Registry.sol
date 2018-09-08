@@ -1,10 +1,10 @@
 pragma solidity ^0.4.24;
 
-import "tokens/eip20/EIP20Interface.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./Parameterizer.sol";
 import "./Challenge/ChallengeFactoryInterface.sol";
 import "./Challenge/ChallengeInterface.sol";
-import "zeppelin/math/SafeMath.sol";
 
 contract Registry {
 
@@ -49,7 +49,7 @@ contract Registry {
     mapping(bytes32 => Listing) public listings;
 
     // Global Variables
-    EIP20Interface public token;
+    ERC20 public token;
     ChallengeFactoryInterface public challengeFactory;
     Parameterizer public parameterizer;
     string public name;
@@ -68,7 +68,7 @@ contract Registry {
         require(_token != 0 && address(token) == 0);
         require(_parameterizer != 0 && address(parameterizer) == 0);
 
-        token = EIP20Interface(_token);
+        token = ERC20(_token);
         parameterizer = Parameterizer(_parameterizer);
         challengeFactory = ChallengeFactoryInterface(_challengeFactory);
         name = _name;
