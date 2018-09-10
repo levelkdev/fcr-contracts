@@ -2,7 +2,7 @@
   "local": {
     "tokenAddress": "",
     "registryAddress": "",
-    "LMSRMarketMakerAddress": "",
+    "futarchyChallengeFactoryAddress": "",
     "web3Url": "http://localhost:8545",
     "socketWeb3Url": "ws://localhost:8545",
     "defaultOptions": {

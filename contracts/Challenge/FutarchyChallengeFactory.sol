@@ -26,7 +26,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
   LMSRMarketMaker public lmsrMarketMaker;                         // LMSR Market Maker for futarchy's prediction markets
   IDutchExchange public dutchExchange;                            // Dutch Exchange contract to retrive token prices
 
-  uint NUM_PRICE_POINTS = 5;  // number of past price points to reference for price average when determining TCR token value
+  uint public NUM_PRICE_POINTS = 5;  // number of past price points to reference for price average when determining TCR token value
 
   // ------------
   // CONSTRUCTOR:
@@ -98,6 +98,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
 
   function determinePriceBounds(ERC20 _token) internal returns (int upperBound, int lowerBound) {
     uint currentAuctionIndex = dutchExchange.getAuctionIndex(_token, comparatorToken);
+    require(currentAuctionIndex > NUM_PRICE_POINTS, "Not enough historical price data for token pair");
 
     uint firstReferencedIndex = currentAuctionIndex - NUM_PRICE_POINTS;
 

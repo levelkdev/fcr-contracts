@@ -1,7 +1,5 @@
 // import _ from 'lodash'
-// import fcrjs from 'fcr-js'
-// import Web3_beta from 'web3'
-
+import fcrJS from '../helpers/fcrJS'
 import newRegistry from '../helpers/newRegistry'
 
 /*
@@ -24,7 +22,7 @@ module.exports = async (artifacts, web3) => {
   const OutcomeToken = artifacts.require('OutcomeToken')
 
   const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory')
-  const futarchyChallengeFacotry = await FutarchyChallengeFactory.deployed()
+  const futarchyChallengeFactory = await FutarchyChallengeFactory.deployed()
 
   const RegistryFactory = artifacts.require('RegistryFactory')
   const registryFactory = await RegistryFactory.deployed()
@@ -35,22 +33,27 @@ module.exports = async (artifacts, web3) => {
   const EtherToken = artifacts.require('EtherToken')
   const etherToken = await EtherToken.deployed()
 
+  const LMSRMarketMaker = artifacts.require('LMSRMarketMaker')
+  const lmsrMarketMaker = await LMSRMarketMaker.deployed()
+
+  const DutchExchange = artifacts.require('DutchExchange')
+  const dutchExchange = await DutchExchange.deployed()
+
   const FutarchyOracleFactory = artifacts.require('FutarchyOracleFactory')
   const ScalarPriceOracleFactory = artifacts.require('ScalarPriceOracleFactory')
   const FutarchyChallenge = artifacts.require('FutarchyChallenge')
-  const DutchExchange = artifacts.require('DutchExchange')
 
   const [creator, applicant, challenger, voterFor, voterAgainst, buyer1, buyer2] = accounts
+  const approvalAmount = 20 * 10 ** 18
+  const futarchyFundingAmount = 10 * 10 ** 18
+  const listingTitle = 'listing001'
   // const tradingPeriod = 60 * 60
-  // const futarchyFundingAmount = 10 * 10 ** 18
-  // const approvalAmount = 20 * 10 ** 18
 
 
   // TODO: distribute tokens without utils.js
   // await utils.distributeToken(accounts, token)
   // await utils.distributeEtherToken(accounts, etherToken)
 
-  const dutchExchange         = await DutchExchange.deployed()
   // const outcomeToken          = await OutcomeToken.deployed()
   // const scalarPriceOracleFactory = await ScalarPriceOracleFactory.new(token.address, etherToken.address, dutchExchange.address)
   // const futarchyOracleFactory = await FutarchyOracleFactory.deployed()
@@ -61,28 +64,40 @@ module.exports = async (artifacts, web3) => {
     'Example Futarchy Curated Registry',
     token,
     registryFactory,
-    futarchyChallengeFacotry
+    futarchyChallengeFactory
   )
-  console.log(`registryAddress: ${registryAddress}`)
   const registry = await Registry.at(registryAddress)
-  await logTCRBalances(accounts, token, registry)
+  console.log(`registry created: ${registryAddress}`)
 
-  // // await Registry.new(token.address, futarchyChallengeFactory.address, parameterizer.address, 'best registry' )
-  // await logTCRBalances(accounts, token, registry)
+  const fcr = fcrJS(
+    registry.address,
+    token.address,
+    futarchyChallengeFactory.address
+  )
 
-  // const fcr = fcrjs(web3_beta, _.merge(fcrJsConfig.local, {
-  //   registryAddress: registry.address,
-  //   tokenAddress: token.address,
-  //   LMSRMarketMakerAddress: lmsrMarketMaker.address
-  // }))
+  await token.approve(
+    registry.address,
+    approvalAmount,
+    { from: applicant }
+  )
+  const registryTx = await fcr.registry.apply(
+    applicant,
+    listingTitle,
+    futarchyFundingAmount,
+    ''
+  )
+  const listingHash = registryTx[0].receipt.events._Application.returnValues.listingHash
+  console.log(`application created: listingHash=${listingHash}`)
 
+  const tx = await fcr.registry.createChallenge(
+    challenger,
+    listingTitle,
+    ''
+  )
+  console.log('TX: ', tx)
 
-  // console.log('----------------------- SUBMITTING APPLICATION -----------------------')
-  // await token.approve(registry.address, approvalAmount, {from: applicant})
-  // await fcr.registry.apply(applicant, 'nochallenge.net', futarchyFundingAmount, '')
-  // await logTCRBalances(accounts, token, registry)
-
-
+  // const auctionIndex = await dutchExchange.getAuctionIndex(token.address, etherToken.address)
+  // console.log('AUCTION INDEX: ', auctionIndex)
 
 
   // console.log('----------------------- SUBMITTING CHALLENGE -----------------------')
