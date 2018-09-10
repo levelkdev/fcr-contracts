@@ -2,6 +2,8 @@
 // import fcrjs from 'fcr-js'
 // import Web3_beta from 'web3'
 
+import newRegistry from '../helpers/newRegistry'
+
 /*
  * Add Listing
  * -----------
@@ -17,72 +19,53 @@
 
 module.exports = async (artifacts, web3) => {
   const { accounts } = web3.eth
-  
-  // TODO: create integration testing config, remove hardcoded config
-  const paramConfig = {
-    minDeposit: 10
-  }
 
-  const Parameterizer = artifacts.require('Parameterizer.sol')
   const Registry = artifacts.require('Registry.sol')
-  const Token = artifacts.require('EIP20.sol')
   const OutcomeToken = artifacts.require('OutcomeToken')
+
   const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory')
+  const futarchyChallengeFacotry = await FutarchyChallengeFactory.deployed()
+
+  const RegistryFactory = artifacts.require('RegistryFactory')
+  const registryFactory = await RegistryFactory.deployed()
+
+  const Token = artifacts.require('EIP20.sol')
+  const token = await Token.deployed()
+
   const EtherToken = artifacts.require('EtherToken')
-  const Event = artifacts.require('Event')
-  const LMSRMarketMaker = artifacts.require('LMSRMarketMaker')
+  const etherToken = await EtherToken.deployed()
+
   const FutarchyOracleFactory = artifacts.require('FutarchyOracleFactory')
   const ScalarPriceOracleFactory = artifacts.require('ScalarPriceOracleFactory')
   const FutarchyChallenge = artifacts.require('FutarchyChallenge')
   const DutchExchange = artifacts.require('DutchExchange')
 
   const [creator, applicant, challenger, voterFor, voterAgainst, buyer1, buyer2] = accounts
-  const tradingPeriod = 60 * 60
-  const futarchyFundingAmount = paramConfig.minDeposit * 10 ** 18
-  const approvalAmount = 20 * 10 ** 18
+  // const tradingPeriod = 60 * 60
+  // const futarchyFundingAmount = 10 * 10 ** 18
+  // const approvalAmount = 20 * 10 ** 18
 
-  const token = await Token.deployed()
-  const etherToken = await EtherToken.deployed()
 
   // TODO: distribute tokens without utils.js
   // await utils.distributeToken(accounts, token)
   // await utils.distributeEtherToken(accounts, etherToken)
 
   const dutchExchange         = await DutchExchange.deployed()
-  const outcomeToken          = await OutcomeToken.deployed()
-  const scalarPriceOracleFactory = await ScalarPriceOracleFactory.new(token.address, etherToken.address, dutchExchange.address)
-  const futarchyOracleFactory = await FutarchyOracleFactory.deployed()
-  const lmsrMarketMaker = await LMSRMarketMaker.new()
-  const timeToPriceResolution = 60 * 60 * 24 * 7 // a week
+  // const outcomeToken          = await OutcomeToken.deployed()
+  // const scalarPriceOracleFactory = await ScalarPriceOracleFactory.new(token.address, etherToken.address, dutchExchange.address)
+  // const futarchyOracleFactory = await FutarchyOracleFactory.deployed()
+  // const timeToPriceResolution = 60 * 60 * 24 * 7 // a week
 
-  // TODO: implement dutch exchange auction and trading
-  // await runDutchExchangeAuction(web3, dutchExchange, token, etherToken)
-
-  const futarchyChallengeFactory = await FutarchyChallengeFactory.new(
-    etherToken.address,
-    futarchyFundingAmount,
-    tradingPeriod,
-    timeToPriceResolution,
-    futarchyOracleFactory.address,
-    scalarPriceOracleFactory.address,
-    lmsrMarketMaker.address,
-    dutchExchange.address
+  // deploy registry contract
+  const { registryAddress } = await newRegistry(
+    'Example Futarchy Curated Registry',
+    token,
+    registryFactory,
+    futarchyChallengeFacotry
   )
-
-  console.log('futarchyChallengeFactory: ', futarchyChallengeFactory.address)
-  console.log('')
-
-  // const allEvents = futarchyChallengeFactory.allEvents({
-  //   fromBlock: 0,
-  //   toBlock: 'latest'
-  // });
-  // allEvents.watch((err, res) => {
-  //   console.log(err, res);
-  // });
-
-  // console.log('----------------------- CREATING REGISTRY -----------------------')
-  // const { registryProxy} = await utils.getProxiesBYO(token.address);
-  // const registry = registryProxy;
+  console.log(`registryAddress: ${registryAddress}`)
+  const registry = await Registry.at(registryAddress)
+  await logTCRBalances(accounts, token, registry)
 
   // // await Registry.new(token.address, futarchyChallengeFactory.address, parameterizer.address, 'best registry' )
   // await logTCRBalances(accounts, token, registry)
