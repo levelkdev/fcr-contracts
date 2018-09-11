@@ -17,13 +17,13 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
   // GLOBAL VARIABLES
   address public comparatorToken;       // Address of token to which TCR's intrinsic token will be compared
   uint public stakeAmount;              // Amount that must be staked to initiate a Challenge
-  uint public tradingPeriod;            // Duration for open trading on futarchy prediction markets
-  uint public timeToPriceResolution;    // Duration from start of prediction markets until date of final price resolution
+  uint public tradingPeriod;            // Duration for open trading before futarchy decision resolution
+  uint public timeToPriceResolution;    // Duration from start of prediction markets until date of final scalar price resolution
 
-  FutarchyOracleFactory public futarchyOracleFactory;                  // Factory for creating Futarchy Oracles
-  ScalarPriceOracleFactory public scalarPriceOracleFactory;  // Factory for creating Oracles to resolve Futarchy's scalar prediction markets
-  LMSRMarketMaker public lmsrMarketMaker;                              // LMSR Market Maker for futarchy's prediction markets
-  IDutchExchange public dutchExchange;                              // Dutch Exchange contract to retrive token prices
+  FutarchyOracleFactory public futarchyOracleFactory;             // Factory for creating Futarchy Oracles
+  ScalarPriceOracleFactory public scalarPriceOracleFactory;       // Factory for creating Oracles to resolve Futarchy's scalar prediction markets
+  LMSRMarketMaker public lmsrMarketMaker;                         // LMSR Market Maker for futarchy's prediction markets
+  IDutchExchange public dutchExchange;                            // Dutch Exchange contract to retrive token prices
 
   uint NUM_PRICE_POINTS = 5;  // number of past price points to reference for price average when determining TCR token value
 

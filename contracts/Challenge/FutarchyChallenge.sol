@@ -5,7 +5,7 @@ import '../Registry.sol';
 import "./Oracles/ScalarPriceOracle.sol";
 import "./ChallengeInterface.sol";
 
-contract  FutarchyChallenge is ChallengeInterface {
+contract FutarchyChallenge is ChallengeInterface {
 
   event _Started(address challenger, uint stakeAmount, address futarchyOracleAddress);
   event _Funded(address challenger, uint stakeAmount, address futarchyOracleAddress);
@@ -25,12 +25,13 @@ contract  FutarchyChallenge is ChallengeInterface {
   int public lowerBound;
   bool public isFunded;
 
-  FutarchyOracle public futarchyOracle;                      // Futarchy Oracle to resolve challenge
-  FutarchyOracleFactory public futarchyOracleFactory;        // Factory to create FutarchyOracle
-  ScalarPriceOracle public scalarPriceOracle;                // Oracle to resolve scalar prediction markets
-  LMSRMarketMaker public lmsrMarketMaker;                    // MarketMaker for scalar prediction markets
-  Registry public registry;                                  // Address of TCR
-  uint public winningMarketIndex;                            // Index of scalar prediction market with greatest average price for long token
+  FutarchyOracle public futarchyOracle;                   // Futarchy Oracle to resolve challenge
+  FutarchyOracleFactory public futarchyOracleFactory;     // Factory to create FutarchyOracle
+  ScalarPriceOracle public scalarPriceOracle;             // Oracle to resolve scalar prediction markets
+  LMSRMarketMaker public lmsrMarketMaker;                 // MarketMaker for scalar prediction markets
+  Registry public registry;                               // Address of TCR
+  uint public winningMarketIndex;                         // Index of scalar prediction market with greatest average price for long token
+  uint public rewardBalance;                              // Amount of tokens to be rewarded to challenge winner contingent on leftover initial funding liquidity
 
 
   // ------------
@@ -57,6 +58,9 @@ contract  FutarchyChallenge is ChallengeInterface {
     ScalarPriceOracle _scalarPriceOracle,
     LMSRMarketMaker _lmsrMarketMaker
   ) public {
+    require(_tradingPeriod > 0);
+    require(_upperBound > _lowerBound);
+
     registry = _registry;
     challenger = _challenger;
     listingOwner = _listingOwner;
@@ -124,16 +128,14 @@ contract  FutarchyChallenge is ChallengeInterface {
 
   function winnerRewardAmount() public view returns (uint256) {
     require(marketsAreClosed);
-    return registry.token().balanceOf(this);
+    return rewardBalance;
   }
 
   function close() public {
-    futarchyOracle.close();
+    require(!marketsAreClosed);
+    futarchyOracle.close(); // transfers remaining futarchyOracle liquidity back to this contract
     marketsAreClosed = true;
-    require(registry.token().approve(registry, registry.token().balanceOf(this)));
-  }
-
-  function setScalarOutcome() public {
-    scalarPriceOracle.setOutcome();
+    rewardBalance = registry.token().balanceOf(this);
+    require(registry.token().approve(registry, rewardBalance));
   }
 }
