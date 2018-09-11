@@ -25,13 +25,13 @@ contract FutarchyChallenge is ChallengeInterface {
   int public lowerBound;
   bool public isFunded;
 
-  FutarchyOracle public futarchyOracle;                      // Futarchy Oracle to resolve challenge
-  FutarchyOracleFactory public futarchyOracleFactory;        // Factory to create FutarchyOracle
-  ScalarPriceOracle public scalarPriceOracle;                // Oracle to resolve scalar prediction markets
-  LMSRMarketMaker public lmsrMarketMaker;                    // MarketMaker for scalar prediction markets
-  Registry public registry;                                  // Address of TCR
-  uint public winningMarketIndex;                            // Index of scalar prediction market with greatest average price for long token
-  uint public rewardBalance;                                 // Amount of tokens to be rewarded to challenge winner contigent on leftover intial funding liquidity
+  FutarchyOracle public futarchyOracle;                   // Futarchy Oracle to resolve challenge
+  FutarchyOracleFactory public futarchyOracleFactory;     // Factory to create FutarchyOracle
+  ScalarPriceOracle public scalarPriceOracle;             // Oracle to resolve scalar prediction markets
+  LMSRMarketMaker public lmsrMarketMaker;                 // MarketMaker for scalar prediction markets
+  Registry public registry;                               // Address of TCR
+  uint public winningMarketIndex;                         // Index of scalar prediction market with greatest average price for long token
+  uint public rewardBalance;                              // Amount of tokens to be rewarded to challenge winner contingent on leftover initial funding liquidity
 
 
   // ------------
@@ -61,7 +61,7 @@ contract FutarchyChallenge is ChallengeInterface {
     require(_tradingPeriod > 0);
     require(_upperBound > _lowerBound);
 
-    registry = _registry
+    registry = _registry;
     challenger = _challenger;
     listingOwner = _listingOwner;
     stakeAmount = _stakeAmount;
@@ -133,7 +133,7 @@ contract FutarchyChallenge is ChallengeInterface {
 
   function close() public {
     require(!marketsAreClosed);
-    futarchyOracle.close(); // transfers remaining futarchyOracle liquidty back to this contract
+    futarchyOracle.close(); // transfers remaining futarchyOracle liquidity back to this contract
     marketsAreClosed = true;
     rewardBalance = registry.token().balanceOf(this);
     require(registry.token().approve(registry, rewardBalance));
