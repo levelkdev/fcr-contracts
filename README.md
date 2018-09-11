@@ -4,9 +4,9 @@
 
 This scripts allows you to make changes to a contract and recompile without the added overhead of `truffle compile`.
 
-To compile a single contract and it's imports:
+First, run these prerequisite steps:
 
-* Make sure you have the latest solc CLI [install solidity](https://solidity.readthedocs.io/en/v0.4.24/installing-solidity.html).
+* Install latest solc CLI [install solidity](https://solidity.readthedocs.io/en/v0.4.24/installing-solidity.html).
 * Compile all contracts: `npm run compile`
 * Run the flattener: `npm run flattener`
 
