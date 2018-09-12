@@ -1,7 +1,5 @@
 pragma solidity ^0.4.24;
 
-import '../../contracts/Challenge/Oracles/ScalarPriceOracle.sol';
-
 contract ScalarPriceOracleMock {
   int public mock_outcome;
 
