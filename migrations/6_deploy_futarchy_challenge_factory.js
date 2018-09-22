@@ -18,7 +18,7 @@ module.exports = (deployer, network) => {
     const LMSRMarketMaker = artifacts.require('LMSRMarketMaker')
     const Token = artifacts.require('tokens/eip20/EIP20.sol');
     const EtherToken = artifacts.require('EtherToken')
-    const DutchExchange = artifacts.require('DutchExchange')
+    const DutchExchangeProxy = artifacts.require('DutchExchangeProxy')
 
     const config = require('../conf/config.json')
     const paramConfig = config.paramDefaults
@@ -42,7 +42,7 @@ module.exports = (deployer, network) => {
         ScalarPriceOracleFactory,
         Token.address,
         EtherToken.address,
-        DutchExchange.address
+        DutchExchangeProxy.address
       )
       await deployer.deploy(LMSRMarketMaker)
       await deployer.deploy(EtherToken)
@@ -58,7 +58,7 @@ module.exports = (deployer, network) => {
         FutarchyOracleFactory.address,
         ScalarPriceOracleFactory.address,
         LMSRMarketMaker.address,
-        network == 'rinkeby' ? '0x4e69969D9270fF55fc7c5043B074d4e45F795587' : DutchExchange.address
+        network == 'rinkeby' ? '0x4e69969D9270fF55fc7c5043B074d4e45F795587' : DutchExchangeProxy.address
       )
 
     }).catch((err) => { throw err })

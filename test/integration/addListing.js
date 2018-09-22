@@ -1,5 +1,8 @@
-// import _ from 'lodash'
+import Web3 from 'web3'
 import fcrJS from '../helpers/fcrJS'
+import distributeEtherToken from '../helpers/distributeEtherToken'
+import setupDxPriceFeed from '../helpers/dutchExchange/setupDxPriceFeed'
+import addDxPriceData from '../helpers/dutchExchange/addDxPriceData'
 import newRegistry from '../helpers/newRegistry'
 
 /*
@@ -16,6 +19,7 @@ import newRegistry from '../helpers/newRegistry'
  */
 
 module.exports = async (artifacts, web3) => {
+  const BN = Web3.utils.BN
   const { accounts } = web3.eth
 
   const Registry = artifacts.require('Registry.sol')
@@ -37,22 +41,33 @@ module.exports = async (artifacts, web3) => {
   const lmsrMarketMaker = await LMSRMarketMaker.deployed()
 
   const DutchExchange = artifacts.require('DutchExchange')
-  const dutchExchange = await DutchExchange.deployed()
+  const DutchExchangeProxy = artifacts.require('DutchExchangeProxy')
+  const dutchExchange = DutchExchange.at((await DutchExchangeProxy.deployed()).address)
 
   const FutarchyOracleFactory = artifacts.require('FutarchyOracleFactory')
   const ScalarPriceOracleFactory = artifacts.require('ScalarPriceOracleFactory')
   const FutarchyChallenge = artifacts.require('FutarchyChallenge')
 
   const [creator, applicant, challenger, voterFor, voterAgainst, buyer1, buyer2] = accounts
-  const approvalAmount = 20 * 10 ** 18
-  const futarchyFundingAmount = 10 * 10 ** 18
+
+  const fcrTokenFundingAmount = 1000 * 10 ** 18
+  const etherTokenFundingAmount = 20 * 10 ** 18
+  const etherTokenDistributionAmount = 50 * 10 ** 18
+
   const listingTitle = 'listing001'
+
   // const tradingPeriod = 60 * 60
 
+  await distributeEtherToken(accounts, etherToken, etherTokenDistributionAmount)
 
-  // TODO: distribute tokens without utils.js
-  // await utils.distributeToken(accounts, token)
-  // await utils.distributeEtherToken(accounts, etherToken)
+  await setupDxPriceFeed(artifacts.require('PriceOracleInterface'), dutchExchange)
+  await addDxPriceData({
+    dutchExchange,
+    fcrToken: token,
+    fcrTokenAmount: fcrTokenFundingAmount,
+    etherToken: etherToken,
+    etherTokenAmount: etherTokenFundingAmount
+  })
 
   // const outcomeToken          = await OutcomeToken.deployed()
   // const scalarPriceOracleFactory = await ScalarPriceOracleFactory.new(token.address, etherToken.address, dutchExchange.address)
@@ -77,24 +92,24 @@ module.exports = async (artifacts, web3) => {
 
   await token.approve(
     registry.address,
-    approvalAmount,
+    fcrTokenFundingAmount,
     { from: applicant }
   )
   const registryTx = await fcr.registry.apply(
     applicant,
     listingTitle,
-    futarchyFundingAmount,
+    fcrTokenFundingAmount.toString(16),
     ''
   )
   const listingHash = registryTx[0].receipt.events._Application.returnValues.listingHash
   console.log(`application created: listingHash=${listingHash}`)
 
-  const tx = await fcr.registry.createChallenge(
-    challenger,
-    listingTitle,
-    ''
-  )
-  console.log('TX: ', tx)
+  // const tx = await fcr.registry.createChallenge(
+  //   challenger,
+  //   listingTitle,
+  //   ''
+  // )
+  // console.log('TX: ', tx)
 
   // const auctionIndex = await dutchExchange.getAuctionIndex(token.address, etherToken.address)
   // console.log('AUCTION INDEX: ', auctionIndex)
