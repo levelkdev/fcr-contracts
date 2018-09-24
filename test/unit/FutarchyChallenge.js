@@ -27,7 +27,7 @@ contract('FutarchyChallenge', (accounts) => {
 
   let token, registryMock, challenge, futarchyOracleMock, futarchyOracleFactoryMock
 
-  describe('when deployed correctly, ', () => {
+  describe('when deployed correctly', () => {
     before(async () => {
       token = await Token.new(1000 * 10 ** 18, "FCR Token", 18, 'FCR')
       registryMock = await RegistryMock.new(token.address)

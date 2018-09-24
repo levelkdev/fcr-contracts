@@ -10,6 +10,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
   // EVENTS
   // ------
   event SetUpperAndLowerBound(int upperBound, int lowerBound);
+  event ChallengeCreated(address challengeFactory, address challenge, address registry, address challenger, address listingOwner);
 
   // -------
   // STATE:
@@ -48,6 +49,9 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
     LMSRMarketMaker _lmsrMarketMaker,
     address _dutchExchange
   ) public {
+    require(_tradingPeriod > 0);
+    require(_timeToPriceResolution > _tradingPeriod);
+
     comparatorToken       = _comparatorToken;
     stakeAmount           = _stakeAmount;
     tradingPeriod         = _tradingPeriod;
@@ -66,7 +70,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
   /// @param _challenger          Address of the challenger
   /// @param _listingOwner        Address of the listing owner
   /// @return ChallengeInterface Newly created Challenge
-  function createChallenge(address _registry, address _challenger, address _listingOwner) external returns (ChallengeInterface) {
+  function createChallenge(address _registry, address _challenger, address _listingOwner) external returns (ChallengeInterface challenge) {
     int upperBound;
     int lowerBound;
     (upperBound, lowerBound) = determinePriceBounds(Registry(_registry).token());
@@ -76,7 +80,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
       resolutionDate
     );
 
-    return new FutarchyChallenge(
+    challenge = new FutarchyChallenge(
       Registry(_registry),
       _challenger,
       _listingOwner,
@@ -88,6 +92,8 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
       scalarPriceOracle,
       lmsrMarketMaker
     );
+
+    emit ChallengeCreated(this, challenge, _registry, _challenger, _listingOwner);
   }
 
   function determinePriceBounds(ERC20 _token) internal returns (int upperBound, int lowerBound) {
