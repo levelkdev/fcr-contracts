@@ -10,24 +10,29 @@ const DutchExchangeMock = artifacts.require('DutchExchangeMock')
 const Token = artifacts.require('EIP20.sol')
 const BigNumber = require('bignumber.js');
 
+const mockAddresses = [
+  '0x4e0100882b427b3be1191c5a7c7e79171b8a24dd',
+  '0x6512df5964f1578a8164ce93a3238f2b11485d1c',
+  '0x687355ca7a320e5420a3db5ae59ef662e4146786'
+]
+
+let COMPARATOR_TOKEN, SCALAR_PRICE_ORACLE_FACTORY, DUTCH_EXCHANGE // async "const's"
+const STAKE_AMOUNT                = 10 * 10 **18
+const TRADING_PERIOD              = 60 * 60 * 24
+const TIME_TO_PRICE_RESOLUTION    = TRADING_PERIOD * 2
+const FUTARCHY_ORACLE_FACTORY     = mockAddresses[0]
+const LMSR_MARKET_MAKER           = mockAddresses[1]
+
 contract('FutarchyChallengeFactory', (accounts) => {
   let futarchyChallengeFactory
 
-  const mockAddresses = [
-    '0x4e0100882b427b3be1191c5a7c7e79171b8a24dd',
-    '0x6512df5964f1578a8164ce93a3238f2b11485d1c',
-    '0x687355ca7a320e5420a3db5ae59ef662e4146786'
-  ]
-
-  let COMPARATOR_TOKEN, SCALAR_PRICE_ORACLE_FACTORY, DUTCH_EXCHANGE // async "const's"
-  const STAKE_AMOUNT                = 10 * 10 **18
-  const TRADING_PERIOD              = 60 * 60 * 24
-  const TIME_TO_PRICE_RESOLUTION    = TRADING_PERIOD * 2
-  const FUTARCHY_ORACLE_FACTORY     = mockAddresses[0]
-  const LMSR_MARKET_MAKER           = mockAddresses[1]
+  before(async () => {
+    COMPARATOR_TOKEN            = await Token.new(1000 * 10**18, "Comparator Token", 18, 'CT')
+    SCALAR_PRICE_ORACLE_FACTORY = await ScalarPriceOracleFactoryMock.new()
+    DUTCH_EXCHANGE              = await DutchExchangeMock.new()
+  })
 
   describe('when deployed with valid parameters', () => {
-
     before(async () => {
       futarchyChallengeFactory = await deployChallengeFactory()
     })
@@ -105,9 +110,7 @@ contract('FutarchyChallengeFactory', (accounts) => {
   })
 
   async function deployChallengeFactory(customParams = {}) {
-    COMPARATOR_TOKEN            = COMPARATOR_TOKEN || await Token.new(1000 * 10**18, "Comparator Token", 18, 'CT')
-    SCALAR_PRICE_ORACLE_FACTORY = SCALAR_PRICE_ORACLE_FACTORY ||await ScalarPriceOracleFactoryMock.new()
-    DUTCH_EXCHANGE              = DUTCH_EXCHANGE || await DutchExchangeMock.new()
+
 
     const {
       comparatorToken          = COMPARATOR_TOKEN.address,
