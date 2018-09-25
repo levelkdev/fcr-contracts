@@ -4,17 +4,31 @@ import getAuctionSellVolumes from './getAuctionSellVolumes'
 
 export default async ({
   auctionIndex,
+  startingTime,
   clearingTime,
   increaseTime,
   traderAccount,
+  funderAccount,
   dutchExchange,
   fcrToken,
   etherToken
 }) => {
-  await increaseTime(60 * 60 * 6) // to auction start (6 hours from now)
-  console.log(`Auction_${auctionIndex} time increased to start (6 hours)`)
+  console.log(`Clearing Auction_${auctionIndex}`)
+  console.log('')
+
+  await increaseTime(startingTime) // to auction start
+  console.log(`Auction_${auctionIndex} time increased to start (${startingTime / (60 * 60)} hours)`)
   await increaseTime(clearingTime) // increase time to 
   console.log(`Auction_${auctionIndex} time increased by ${clearingTime / (60 * 60)} hours`)
+  console.log('')
+
+  // // execute sell orders for next auction (auctionIndex + 1)
+  await sellFcr(200 * 10 ** 18)
+  console.log(`<${funderAccount}> sell 200 FCR in Auction_${auctionIndex + 1}`)
+  console.log('')
+
+  await sellEth(12 * 10 ** 18)
+  console.log(`<${funderAccount}> sell 12 ETH in Auction_${auctionIndex + 1}`)
   console.log('')
 
   const p = await getAuctionPrice(auctionIndex)
@@ -77,25 +91,34 @@ export default async ({
     return fcrToEthPrice
   }
 
-  async function buyFcrWithEth(etherTokenAmount) {
-    await approveTokenForDx({
-      tokenName: 'etherToken',
-      token: etherToken,
-      amount: etherTokenAmount,
-      dutchExchange,
-      account: traderAccount
-    })
-    await depositTokenToDx({
-      tokenName: 'etherToken',
-      token: etherToken,
-      amount: etherTokenAmount,
-      dutchExchange,
-      account: traderAccount
-    })
+  async function sellFcr (amount) {
+    await approveAndDeposit('fcrToken', fcrToken, amount, funderAccount)
+    const tx = await dutchExchange.postSellOrder(
+      fcrToken.address,
+      etherToken.address,
+      auctionIndex + 1,
+      amount,
+      { from: funderAccount }
+    )
+  }
+
+  async function sellEth (amount) {
+    await approveAndDeposit('etherToken', etherToken, amount, funderAccount)
+    const tx = await dutchExchange.postSellOrder(
+      etherToken.address,
+      fcrToken.address,
+      auctionIndex + 1,
+      amount,
+      { from: funderAccount }
+    )
+  }
+
+  async function buyFcrWithEth (etherTokenAmount) {
+    await approveAndDeposit('etherToken', etherToken, etherTokenAmount, traderAccount)
     const buyOrderTx = await dutchExchange.postBuyOrder(
       fcrToken.address,
       etherToken.address,
-      1,
+      auctionIndex,
       etherTokenAmount,
       { from: traderAccount }
     )
@@ -103,30 +126,34 @@ export default async ({
     return buyOrderTx
   }
 
-  async function buyEthWithFcr(fcrTokenAmount) {
-    await approveTokenForDx({
-      tokenName: 'fcrToken',
-      token: fcrToken,
-      amount: fcrTokenAmount,
-      dutchExchange,
-      account: traderAccount
-    })
-    await depositTokenToDx({
-      tokenName: 'fcrToken',
-      token: fcrToken,
-      amount: fcrTokenAmount,
-      dutchExchange,
-      account: traderAccount
-    })
+  async function buyEthWithFcr (fcrTokenAmount) {
+    await approveAndDeposit('fcrToken', fcrToken, fcrTokenAmount, traderAccount)
     const buyOrderTx = await dutchExchange.postBuyOrder(
       etherToken.address,
       fcrToken.address,
-      1,
+      auctionIndex,
       fcrTokenAmount,
       { from: traderAccount }
     )
     console.log(`<${traderAccount}> buy ${fcrTokenAmount/10**18} FCR worth of ETH`)
     return buyOrderTx
+  }
+
+  async function approveAndDeposit (tokenName, token, amount, account) {
+    await approveTokenForDx({
+      tokenName,
+      token,
+      amount,
+      dutchExchange,
+      account
+    })
+    await depositTokenToDx({
+      tokenName,
+      token,
+      amount,
+      dutchExchange,
+      account
+    })
   }
 
 }

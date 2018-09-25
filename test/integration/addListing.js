@@ -2,9 +2,7 @@ import Web3 from 'web3'
 import lkTestHelpers from 'lk-test-helpers'
 import fcrJS from '../helpers/fcrJS'
 import distributeEtherToken from '../helpers/distributeEtherToken'
-import setupDxPriceFeed from '../helpers/dutchExchange/setupDxPriceFeed'
-import addDxTokenPair from '../helpers/dutchExchange/addDxTokenPair'
-import clearAuction from '../helpers/dutchExchange/clearAuction'
+import mockDxAuctions from '../helpers/dutchExchange/mockDxAuctions'
 import newRegistry from '../helpers/newRegistry'
 
 /*
@@ -53,8 +51,6 @@ module.exports = async (artifacts, web3) => {
   const [creator, applicant, challenger, voterFor, voterAgainst, buyer1, buyer2] = accounts
 
   const fcrTokenApplyAmount = 10 * 10 ** 18
-  const fcrTokenFundingAmount = 1000 * 10 ** 18
-  const etherTokenFundingAmount = 20 * 10 ** 18
   const etherTokenDistributionAmount = 50 * 10 ** 18
 
   const listingTitle = 'listing001'
@@ -63,23 +59,13 @@ module.exports = async (artifacts, web3) => {
 
   await distributeEtherToken(accounts, etherToken, etherTokenDistributionAmount)
 
-  await setupDxPriceFeed(artifacts.require('PriceOracleInterface'), dutchExchange)
-  await addDxTokenPair({
-    account: accounts[0],
+  await mockDxAuctions({
     dutchExchange,
-    fcrToken: token,
-    fcrTokenAmount: fcrTokenFundingAmount,
-    etherToken: etherToken,
-    etherTokenAmount: etherTokenFundingAmount
-  })
-  await clearAuction({
-    auctionIndex: 1,
-    clearingTime: 60 * 60 * 9,
+    PriceOracleInterface: artifacts.require('PriceOracleInterface'),
     increaseTime,
-    traderAccount: accounts[1],
-    dutchExchange,
+    accounts,
     fcrToken: token,
-    etherToken: etherToken
+    etherToken
   })
 
   // const outcomeToken          = await OutcomeToken.deployed()
