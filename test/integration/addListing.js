@@ -1,8 +1,10 @@
 import Web3 from 'web3'
+import lkTestHelpers from 'lk-test-helpers'
 import fcrJS from '../helpers/fcrJS'
 import distributeEtherToken from '../helpers/distributeEtherToken'
 import setupDxPriceFeed from '../helpers/dutchExchange/setupDxPriceFeed'
-import addDxPriceData from '../helpers/dutchExchange/addDxPriceData'
+import addDxTokenPair from '../helpers/dutchExchange/addDxTokenPair'
+import clearAuction from '../helpers/dutchExchange/clearAuction'
 import newRegistry from '../helpers/newRegistry'
 
 /*
@@ -19,7 +21,7 @@ import newRegistry from '../helpers/newRegistry'
  */
 
 module.exports = async (artifacts, web3) => {
-  const BN = Web3.utils.BN
+  const { increaseTime } = lkTestHelpers(web3)
   const { accounts } = web3.eth
 
   const Registry = artifacts.require('Registry.sol')
@@ -50,6 +52,7 @@ module.exports = async (artifacts, web3) => {
 
   const [creator, applicant, challenger, voterFor, voterAgainst, buyer1, buyer2] = accounts
 
+  const fcrTokenApplyAmount = 10 * 10 ** 18
   const fcrTokenFundingAmount = 1000 * 10 ** 18
   const etherTokenFundingAmount = 20 * 10 ** 18
   const etherTokenDistributionAmount = 50 * 10 ** 18
@@ -61,12 +64,22 @@ module.exports = async (artifacts, web3) => {
   await distributeEtherToken(accounts, etherToken, etherTokenDistributionAmount)
 
   await setupDxPriceFeed(artifacts.require('PriceOracleInterface'), dutchExchange)
-  await addDxPriceData({
+  await addDxTokenPair({
+    account: accounts[0],
     dutchExchange,
     fcrToken: token,
     fcrTokenAmount: fcrTokenFundingAmount,
     etherToken: etherToken,
     etherTokenAmount: etherTokenFundingAmount
+  })
+  await clearAuction({
+    auctionIndex: 1,
+    clearingTime: 60 * 60 * 9,
+    increaseTime,
+    traderAccount: accounts[1],
+    dutchExchange,
+    fcrToken: token,
+    etherToken: etherToken
   })
 
   // const outcomeToken          = await OutcomeToken.deployed()
@@ -92,13 +105,13 @@ module.exports = async (artifacts, web3) => {
 
   await token.approve(
     registry.address,
-    fcrTokenFundingAmount,
+    fcrTokenApplyAmount,
     { from: applicant }
   )
   const registryTx = await fcr.registry.apply(
     applicant,
     listingTitle,
-    fcrTokenFundingAmount.toString(16),
+    fcrTokenApplyAmount.toString(16),
     ''
   )
   const listingHash = registryTx[0].receipt.events._Application.returnValues.listingHash
