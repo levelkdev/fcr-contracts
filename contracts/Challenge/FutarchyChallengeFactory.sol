@@ -71,6 +71,7 @@ contract FutarchyChallengeFactory is ChallengeFactoryInterface {
   /// @param _listingOwner        Address of the listing owner
   /// @return ChallengeInterface Newly created Challenge
   function createChallenge(address _registry, address _challenger, address _listingOwner) external returns (ChallengeInterface challenge) {
+
     int upperBound;
     int lowerBound;
     (upperBound, lowerBound) = determinePriceBounds(Registry(_registry).token());
