@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import assert from 'assert'
 import Web3 from 'web3'
 import lkTestHelpers from 'lk-test-helpers'
 import fcrJS from '../helpers/fcrJS'
@@ -91,6 +92,8 @@ module.exports = async (artifacts, web3) => {
     futarchyChallengeFactory.address
   )
 
+  const applicantBalancePreApply = await applicantBalance() / 10 ** 18
+
   await fcrToken.approve(
     registry.address,
     fcrTokenStakeAmount,
@@ -105,6 +108,16 @@ module.exports = async (artifacts, web3) => {
   const listingHash = registryTx[0].receipt.events._Application.returnValues.listingHash
   console.log(`Application created: listingHash=${listingHash}`)
   console.log('')
+
+  const applicantBalancePostApply = await applicantBalance() / 10 ** 18
+  const expectedApplyFee = 10
+  const actualApplicantBalanceDiff = applicantBalancePreApply - applicantBalancePostApply
+  assert.equal(
+    actualApplicantBalanceDiff,
+    expectedApplyFee,
+    `expected applicant balance to be reduced by ${expectedApplyFee} FCR, ` +
+    `but was reduced by ${actualApplicantBalanceDiff}`
+  )
 
   await fcr.registry.createChallenge(
     challengerAddress,
@@ -135,10 +148,6 @@ module.exports = async (artifacts, web3) => {
   console.log(`Challenge_${challengeNonce} funded: `, fundedEvent.returnValues)
   console.log('')
 
-  // execute some outcome token buys
-  const p1 = await challenge.calculateOutcomeMarginalPrice('LONG_ACCEPTED')
-  console.log('P1: ', p1)
-
   const longAcceptedBuyAmount = 8 * 10 ** 18
   const longDeniedBuyAmount = 4 * 10 ** 18
   await challenge.buyOutcome(
@@ -152,12 +161,6 @@ module.exports = async (artifacts, web3) => {
     longDeniedBuyAmount
   )
 
-  const p2 = await challenge.calculateOutcomeMarginalPrice('LONG_ACCEPTED')
-  console.log('P1: ', p2)
-  console.log('')
-
-  logBalances(await getAllBalances())
-
   async function getAllBalances () {
     const allBalances = await getFcrBalances({
       Token,
@@ -165,24 +168,29 @@ module.exports = async (artifacts, web3) => {
       challengerAddress,
       buyerLongAcceptedAddress,
       buyerLongDeniedAddress,
-      registryContractAddress: registry.address,
-      challengeContractAddress: challenge.address,
+      registryContractAddress: registry ? registry.address : null,
+      challengeContractAddress: challenge ? challenge.address : null,
       fcrTokenAddress: fcrToken.address,
       etherTokenAddress: etherToken.address,
-      acceptedTokenAddress:
-        (await challenge.getDecisionToken('ACCEPTED')).address,
-      deniedTokenAddress:
-        (await challenge.getDecisionToken('DENIED')).address,
-      longAcceptedTokenAddress:
-        (await challenge.getOutcomeToken('LONG_ACCEPTED')).address,
-      longDeniedTokenAddress:
-        (await challenge.getOutcomeToken('LONG_DENIED')).address,
-      shortAcceptedTokenAddress:
-        (await challenge.getOutcomeToken('SHORT_ACCEPTED')).address,
-      shortDeniedTokenAddress:
-        (await challenge.getOutcomeToken('SHORT_DENIED')).address
+      acceptedTokenAddress: challenge ?
+        (await challenge.getDecisionToken('ACCEPTED')).address : null,
+      deniedTokenAddress: challenge ?
+        (await challenge.getDecisionToken('DENIED')).address : null,
+      longAcceptedTokenAddress: challenge ?
+        (await challenge.getOutcomeToken('LONG_ACCEPTED')).address : null,
+      longDeniedTokenAddress: challenge ?
+        (await challenge.getOutcomeToken('LONG_DENIED')).address : null,
+      shortAcceptedTokenAddress: challenge ?
+        (await challenge.getOutcomeToken('SHORT_ACCEPTED')).address : null,
+      shortDeniedTokenAddress: challenge ?
+        (await challenge.getOutcomeToken('SHORT_DENIED')).address : null
     })
     return allBalances
+  }
+
+  async function applicantBalance () {
+    const bal = (await fcrToken.balanceOf(applicantAddress)).toNumber()
+    return bal
   }
 
 
