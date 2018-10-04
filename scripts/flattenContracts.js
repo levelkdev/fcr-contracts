@@ -7,19 +7,13 @@ rimraf.sync(flattenedFileDir)
 fs.mkdirSync(flattenedFileDir)
 
 const contracts = [
-  ['./contracts', 'Parameterizer'],
   ['./contracts', 'ParameterizerFactory'],
-  ['./contracts', 'Registry'],
   ['./contracts', 'RegistryFactory'],
-  ['./contracts/Challenge/Oracles', 'CentralizedTimedOracle'],
   ['./contracts/Challenge/Oracles', 'CentralizedTimedOracleFactory'],
   ['./contracts/Challenge/Oracles', 'DutchExchangeMock'],
-  ['./contracts/Challenge/Oracles', 'ScalarPriceOracle'],
   ['./contracts/Challenge/Oracles', 'ScalarPriceOracleFactory'],
   ['./node_modules/@gnosis.pm/dx-contracts/contracts', 'DutchExchange'],
-  ['./node_modules/@gnosis.pm/gnosis-core-contracts/contracts/Events', 'CategoricalEvent'],
-  ['./node_modules/@gnosis.pm/gnosis-core-contracts/contracts/Events', 'EventFactory'],
-  ['./node_modules/@gnosis.pm/gnosis-core-contracts/contracts/Events', 'ScalarEvent']
+  ['./node_modules/@gnosis.pm/gnosis-core-contracts/contracts/Events', 'EventFactory']
 ]
 
 contracts.forEach((contract) => {
