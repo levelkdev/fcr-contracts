@@ -2,7 +2,8 @@
 
 module.exports = (deployer, network) => {
   if (network !== 'unit_testing') {
-    const Math = artifacts.require('@gnosis.pm/gnosis-core-contracts/Math')
+    const Math = artifacts.require('@gnosis.pm/util-contracts/contracts/Math')
+    const EtherToken = artifacts.require('@gnosis.pm/util-contracts/contracts/EtherToken')
     const CategoricalEvent = artifacts.require('CategoricalEvent')
     const ScalarEvent = artifacts.require('ScalarEvent')
     const OutcomeToken = artifacts.require('OutcomeToken')
@@ -17,19 +18,18 @@ module.exports = (deployer, network) => {
     const EventFactory = artifacts.require('EventFactory')
     const LMSRMarketMaker = artifacts.require('LMSRMarketMaker')
     const Token = artifacts.require('tokens/eip20/EIP20.sol');
-    const EtherToken = artifacts.require('EtherToken')
     const DutchExchangeProxy = artifacts.require('DutchExchangeProxy')
 
     const config = require('../conf/config.json')
     const paramConfig = config.paramDefaults
 
-    const tradingPeriod = 60 * 60
-    const timeToPriceResolution = 60 * 60 * 24 * 7 // a week
+    const tradingPeriod = 60 * 60 * 24 * 7 // 1 week
+    const timeToPriceResolution = 60 * 60 * 24 * 7 * 2 // 2 weeks
     const futarchyFundingAmount = paramConfig.minDeposit * 10 ** 18
 
     return deployer.then(async () => {
       await deployer.deploy(Math)
-      deployer.link(Math, [EtherToken, StandardMarketFactory, StandardMarketWithPriceLoggerFactory, FutarchyChallengeFactory, EventFactory, LMSRMarketMaker, CategoricalEvent, ScalarEvent, OutcomeToken])
+      deployer.link(Math, [StandardMarketFactory, StandardMarketWithPriceLoggerFactory, FutarchyChallengeFactory, EventFactory, LMSRMarketMaker, CategoricalEvent, ScalarEvent, OutcomeToken])
       await deployer.deploy([CategoricalEvent, ScalarEvent, OutcomeToken,])
       await deployer.deploy(EventFactory, CategoricalEvent.address, ScalarEvent.address, OutcomeToken.address)
 
@@ -45,7 +45,6 @@ module.exports = (deployer, network) => {
         DutchExchangeProxy.address
       )
       await deployer.deploy(LMSRMarketMaker)
-      await deployer.deploy(EtherToken)
       await deployer.deploy(FutarchyOracle)
       await deployer.deploy(FutarchyOracleFactory, FutarchyOracle.address, EventFactory.address, StandardMarketWithPriceLoggerFactory.address)
 
