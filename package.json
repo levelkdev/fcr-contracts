@@ -16,11 +16,12 @@
     "integration-test": "truffle exec ./test/helpers/execIntegrationTest.js",
     "integration-tests": "scripts/integrationTests.sh",
     "migrate": "truffle migrate",
-    "migrate-reset": "truffle migrate --reset",
+    "migrate-reset": "npm run clean-truffle-config && truffle migrate --reset",
     "fix": "eslint --fix",
     "lint": "eslint",
     "ganache": "scripts/runGanache.sh",
-    "truffle-version": "truffle version"
+    "truffle-version": "truffle version",
+    "clean-truffle-config": "node scripts/cleanTruffleConfig.js"
   },
   "author": "Irene Lin <irene.lin@consensys.net>, Mira Zeitlin <miranda.zeitlin@consensys.net>, Yorke Rhodes <yorke.rhodesiv@consensys.net>",
   "license": "ISC",
