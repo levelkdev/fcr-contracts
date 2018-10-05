@@ -56,9 +56,11 @@ module.exports = async (artifacts, web3) => {
     applicantAddress,
     challengerAddress,
     buyerLongAcceptedAddress,
-    buyerLongDeniedAddress
+    buyerLongDeniedAddress,
+    publicSenderAddress
   ] = accounts
 
+  const tradingPeriod = 60 * 60 * 24 * 7
   const fcrTokenStakeAmount = 10 * 10 ** 18
   const etherTokenDistributionAmount = 50 * 10 ** 18
 
@@ -161,6 +163,32 @@ module.exports = async (artifacts, web3) => {
     longDeniedBuyAmount
   )
 
+  increaseTime(tradingPeriod + 60)
+  console.log(`block time increased by ${tradingPeriod + 60}`)
+  console.log('')
+
+  console.log('resolving futarchy decision')
+  console.log('')
+  const resolveFutarchyTx = await challenge.resolveFutarchyDecision(publicSenderAddress)
+  const updateStatusEvents = resolveFutarchyTx[2].receipt.events
+  if (updateStatusEvents._ChallengeSucceeded) {
+    console.log('challenge succeeded')
+  } else if (updateStatusEvents._ChallengeFailed) {
+    console.log('challenge failed')
+  } else {
+    throw new Error('Challenge resolution event not fired after futarchy decision resolution')
+  }
+  console.log('')
+
+  const listingData = await fcr.registry.getListing(listingTitle)
+  assert(
+    listingData.whitelisted,
+    true,
+    `Expected listing '${listingTitle}' to be whitelisted, but it was not`
+  )
+  console.log(`listing '${listingTitle}' is whitelisted`)
+  console.log('')
+
   async function getAllBalances () {
     const allBalances = await getFcrBalances({
       Token,
@@ -192,68 +220,6 @@ module.exports = async (artifacts, web3) => {
     const bal = (await fcrToken.balanceOf(applicantAddress)).toNumber()
     return bal
   }
-
-
-
-  // console.log('----------------------- Buy ACCEPTED -----------------------')
-  // const buyAmt1 = 8 * 10 ** 18
-  // const buyAmt2 = 4 * 10 **18
-  // await token.approve(categoricalEvent.address, buyAmt1 , {from: buyer1});
-  // await categoricalEvent.buyAllOutcomes(buyAmt1, {from: buyer1})
-  // await token.approve(categoricalEvent.address, buyAmt2, {from: buyer2});
-  // await categoricalEvent.buyAllOutcomes(buyAmt2, {from: buyer2})
-  // await logTokenBalance('Accepted Token', acceptedToken, [buyer1, buyer2])
-  // await logTokenBalance('Accepted Long Token', acceptedLongToken, [buyer1, buyer2])
-  // await logTCRBalances(accounts, token, registry, challenge, futarchyOracle, categoricalEvent, acceptedLongShortEvent, deniedLongShortEvent)
-
-
-
-
-
-  // console.log('----------------------- Buy LONG_ACCEPTED/SHORT_ACCEPTED -----------------------')
-  // await marketBuy(marketForAccepted, 0, [buyAmt1 * 1.5, 0], buyer1)
-  // await marketBuy(marketForAccepted, 1, [0, buyAmt2 * 1.5], buyer2)
-  // await logTokenBalance('Accepted Token', acceptedToken, [buyer1, buyer2])
-  // await logTokenBalance('Accepted Long Token', acceptedLongToken, [buyer1, buyer2])
-  // await logTCRBalances(accounts, token, registry, challenge, futarchyOracle, categoricalEvent, acceptedLongShortEvent, deniedLongShortEvent)
-  // console.log('')
-
-
-
-
-
-
-  // console.log('----------------------- Execute setOutcome -----------------------')
-  // increaseTime(tradingPeriod + 1000)
-  // await console.log('---------futarchy oracle')
-  // await futarchyOracle.setOutcome()
-  // await console.log('--------categorical oracle')
-  // await categoricalEvent.setOutcome()
-
-  // console.log('')
-
-  // const challengePassed = await challenge.passed()
-  // console.log('  Challenge.passed(): ', challengePassed)
-  // console.log('')
-  // await logTokenBalance('Accepted Token', acceptedToken, [buyer1, buyer2])
-  // await logTokenBalance('Accepted Long Token', acceptedLongToken, [buyer1, buyer2])
-  // await logTCRBalances(accounts, token, registry, challenge, futarchyOracle, categoricalEvent, acceptedLongShortEvent, deniedLongShortEvent)
-
-
-
-
-
-  // console.log('  ----------------------- Update Registry -----------------------')
-  // await registry.updateStatus(listingHash)
-  // console.log('')
-  // await logTokenBalance('Accepted Token', acceptedToken, [buyer1, buyer2])
-  // await logTokenBalance('Accepted Long Token', acceptedLongToken, [buyer1, buyer2])
-  // console.log('  Listing isWhitelisted(): ', await registry.isWhitelisted(listingHash))
-  // console.log('')
-  // await logTCRBalances(accounts, token, registry, challenge, futarchyOracle, categoricalEvent, acceptedLongShortEvent, deniedLongShortEvent)
-
-
-
 
 
   // console.log('----------------------- Resolve Scalar Markets -----------------------')
