@@ -104,7 +104,6 @@ contract FutarchyChallenge is ChallengeInterface {
 
   function fund() public {
     require(isStarted && !isFunded);
-    require(registry.token().transferFrom(msg.sender, this, stakeAmount));
     require(registry.token().approve(futarchyOracle, stakeAmount));
     futarchyOracle.fund(stakeAmount);
     isFunded = true;

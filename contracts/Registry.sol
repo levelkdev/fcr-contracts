@@ -184,6 +184,7 @@ contract Registry {
             return 0;
         }
 
+        require(token.transferFrom(msg.sender, this, minDeposit));
         listing.unstakedDeposit = listing.unstakedDeposit - minDeposit;
         challengeNonce = challengeNonce + 1;
         ChallengeInterface challengeAddress = challengeFactory.createChallenge(this, msg.sender, listing.owner);
@@ -192,6 +193,8 @@ contract Registry {
         challenges[challengeNonce].deposit = minDeposit;
         challenges[challengeNonce].listingHash = _listingHash;
         listing.challengeID = challengeNonce;
+
+        token.transfer(challengeAddress, minDeposit);
 
         emit _Challenge(_listingHash, challengeNonce, challengeAddress, _data, msg.sender);
 
