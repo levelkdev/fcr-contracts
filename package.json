@@ -48,7 +48,7 @@
     "ethjs-query": "0.3.2",
     "ethjs-rpc": "0.1.8",
     "ethjs-util": "0.1.4",
-    "fcr-js": "git://git@github.com:levelkdev/fcr-js#dcf716e0ed3d62443bf881abb5fd6d8fd0bc06f8",
+    "fcr-js": "git://git@github.com:levelkdev/fcr-js#4e5bf4cffa08d29463e54eee34d90898e29d9861",
     "lk-test-helpers": "0.1.5",
     "moment": "^2.22.0",
     "numeral": "^2.0.6",
