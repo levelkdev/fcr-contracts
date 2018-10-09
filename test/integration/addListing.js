@@ -52,6 +52,7 @@ module.exports = async (artifacts, web3) => {
   const FutarchyChallenge = artifacts.require('FutarchyChallenge')
 
   const [
+    _deployer,
     creatorAddress,
     applicantAddress,
     challengerAddress,
@@ -152,19 +153,25 @@ module.exports = async (artifacts, web3) => {
 
   const longAcceptedBuyAmount = 8 * 10 ** 18
   const longDeniedBuyAmount = 4 * 10 ** 18
+
   await challenge.buyOutcome(
     buyerLongAcceptedAddress,
     'LONG_ACCEPTED',
     longAcceptedBuyAmount
   )
+  console.log(`buyerLongAccepted:<${buyerLongAcceptedAddress}> bought ${longAcceptedBuyAmount} LONG_ACCEPTED outcome tokens`)
+  console.log('')
+
   await challenge.buyOutcome(
     buyerLongDeniedAddress,
     'LONG_DENIED',
     longDeniedBuyAmount
   )
+  console.log(`buyerLongDenied:<${buyerLongDeniedAddress}> bought ${longDeniedBuyAmount} LONG_DENIED outcome tokens`)
+  console.log('')
 
-  increaseTime(tradingPeriod + 60)
-  console.log(`block time increased by ${tradingPeriod + 60}`)
+  increaseTime(tradingPeriod + (60 * 5))
+  console.log(`block time increased by ${tradingPeriod + (60 * 5)}`)
   console.log('')
 
   console.log('resolving futarchy decision')
@@ -188,6 +195,29 @@ module.exports = async (artifacts, web3) => {
   )
   console.log(`listing '${listingTitle}' is whitelisted`)
   console.log('')
+
+  const priceOracle = await challenge.getPriceOracle()
+  const resolutionDate = await priceOracle.methods.resolutionDate().call()
+  const latestBlockTime = (await web3.eth.getBlock('latest')).timestamp
+
+  const timeToPriceResolution = (resolutionDate - latestBlockTime) + 60
+  increaseTime(timeToPriceResolution)
+  console.log(`block time increased by ${timeToPriceResolution}`)
+  console.log('')
+
+  console.log('resolving futarchy markets')
+  console.log('')
+  await challenge.resolveFutarchyMarkets(publicSenderAddress)
+
+  console.log(`redeem all winnings for buyerLongAccepted<${buyerLongAcceptedAddress}>`)
+  await challenge.redeemAllWinnings(buyerLongAcceptedAddress)
+  console.log(`redeem all winnings for buyerLongDenied<${buyerLongDeniedAddress}>`)
+  await challenge.redeemAllWinnings(buyerLongDeniedAddress)
+  console.log('')
+
+  console.log('finalize futarchy challenge')
+  console.log('')
+  await challenge.finalize(publicSenderAddress)
 
   async function getAllBalances () {
     const allBalances = await getFcrBalances({
