@@ -7,8 +7,7 @@ import "./ChallengeInterface.sol";
 
 contract FutarchyChallenge is ChallengeInterface {
 
-  event _Started(address challenger, uint stakeAmount, address futarchyOracleAddress);
-  event _Funded(address challenger, uint stakeAmount, address futarchyOracleAddress);
+  event _InitiatedFutarchy(address challenger, uint stakeAmount, address futarchyOracleAddress);
 
   // ============
   // STATE:
@@ -17,13 +16,11 @@ contract FutarchyChallenge is ChallengeInterface {
 
   address public challenger;         // the address of the challenger
   address public listingOwner;       // the address of the listingOwner
-  bool public isStarted;             // true if challenger has executed start()
   bool public marketsAreClosed;      // true if futarchy markets are closed
   uint public stakeAmount;           // number of tokens to stake for either party during challenge
   uint public tradingPeriod;         // duration for open trading before futarchy decision resolution
   int public upperBound;
   int public lowerBound;
-  bool public isFunded;
 
   FutarchyOracle public futarchyOracle;                   // Futarchy Oracle to resolve challenge
   FutarchyOracleFactory public futarchyOracleFactory;     // Factory to create FutarchyOracle
@@ -76,13 +73,11 @@ contract FutarchyChallenge is ChallengeInterface {
   // ------------
   // Challenge Interface:
   // ------------
-  /// @dev start          Creates and funds FutarchyOracle. Futarchy Oracle will spin up
-  ///                     corresponding prediction markets which will open for trade within
-  ///                     60 seconds of this function invocation
+  /// @dev initiateFutarchyOracle   Creates and funds FutarchyOracle. Futarchy Oracle will spin up
+  ///                               corresponding prediction markets which will open for trade starting now
 
-  function start() public {
-    require(!isStarted);
-
+  function initiateFutarchy() public {
+    require(futarchyOracle == address(0));
     uint _startDate = now;
 
     futarchyOracle = futarchyOracleFactory.createFutarchyOracle(
@@ -97,18 +92,9 @@ contract FutarchyChallenge is ChallengeInterface {
       _startDate
     );
 
-    isStarted = true;
-
-    _Started(msg.sender, stakeAmount, address(futarchyOracle));
-  }
-
-  function fund() public {
-    require(isStarted && !isFunded);
     require(registry.token().approve(futarchyOracle, stakeAmount));
     futarchyOracle.fund(stakeAmount);
-    isFunded = true;
-
-    _Funded(msg.sender, stakeAmount, address(futarchyOracle));
+    emit _InitiatedFutarchy(msg.sender, stakeAmount, address(futarchyOracle));
   }
 
   /// @dev ended  returns whether Challenge has ended

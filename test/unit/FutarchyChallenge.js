@@ -1,5 +1,5 @@
 import lkTestHelpers from 'lk-test-helpers'
-const { expectRevert } = lkTestHelpers(web3)
+const { expectRevert, expectEvent } = lkTestHelpers(web3)
 
 const RegistryMock = artifacts.require('RegistryMock.sol')
 const FutarchyOracleFactoryMock = artifacts.require('FutarchyOracleFactoryMock.sol')
@@ -74,14 +74,6 @@ contract('FutarchyChallenge', (accounts) => {
     it('sets the correct lmsrMarketMaker', async () => {
       expect(await challenge.lmsrMarketMaker()).to.equal(LMSR_ADDR)
     })
-
-    it('sets isStarted to false', async () => {
-      expect(await challenge.isStarted()).to.equal(false)
-    })
-
-    it('sets isFunded to false', async () => {
-      expect(await challenge.isFunded()).to.equal(false)
-    })
   })
 
   describe('when deployed with incorrect parameters, ', () => {
@@ -97,10 +89,46 @@ contract('FutarchyChallenge', (accounts) => {
     })
   })
 
+  describe('initiateFutarchy()', async () => {
+    beforeEach(async () => {
+      token = await Token.new(1000 * 10 ** 18, "FCR Token", 18, 'FCR')
+      challenge = await deployChallenge({token})
+
+     // normally registry responsible for transferring funds to new challenge
+      await token.transfer(challenge.address, STAKE_AMOUNT)
+    })
+
+    describe('if futarchyOracle is already set', async () => {
+      it('reverts if futarchyOracle is already set', async () => {
+        await challenge.initiateFutarchy()
+        await expectRevert(challenge.initiateFutarchy())
+      })
+    })
+
+    describe('if futarchyOracle has not been set', async () => {
+      it('sets futarchyOracle', async () => {
+        expect(await challenge.futarchyOracle()).to.equal('0x0000000000000000000000000000000000000000')
+        const { logs } = await challenge.initiateFutarchy()
+        const futarchyOracleAddress = logs[0].args.futarchyOracleAddress
+        expect(await challenge.futarchyOracle()).to.equal(futarchyOracleAddress)
+      })
+
+      it('successfully approves funds to the futarchyOracle', async () => {
+        const { logs } = await challenge.initiateFutarchy()
+        const futarchyOracleAddress = logs[0].args.futarchyOracleAddress
+        expect((await token.allowance(challenge.address, futarchyOracleAddress)).toNumber()).to.equal(STAKE_AMOUNT)
+      })
+
+      it('emits _InitiatedFutarchy event', async () => {
+        await expectEvent('_InitiatedFutarchy', challenge.initiateFutarchy())
+      })
+    })
+  })
+
   describe('ended()', async () => {
     beforeEach(async () => {
       challenge = await deployChallenge()
-      await challenge.start()
+      await challenge.initiateFutarchy()
       futarchyOracleMock = await FutarchyOracleMock.at(await challenge.futarchyOracle())
     })
 
@@ -113,14 +141,12 @@ contract('FutarchyChallenge', (accounts) => {
       await futarchyOracleMock.mock_setIsSet(false)
       expect(await challenge.ended()).to.equal(false)
     })
-
-    // TODO: Update tests on fund() / start() conditions when that logic is updated
   })
 
   describe('passed()', async () => {
     beforeEach(async () => {
       challenge = await deployChallenge()
-      await challenge.start()
+      await challenge.initiateFutarchy()
       futarchyOracleMock = await FutarchyOracleMock.at(await challenge.futarchyOracle())
     })
 
@@ -150,7 +176,7 @@ contract('FutarchyChallenge', (accounts) => {
     beforeEach(async () => {
       token = await Token.new(1000 * 10 ** 18, "FCR Token", 18, 'FCR')
       challenge = await deployChallenge({token})
-      await challenge.start()
+      await challenge.initiateFutarchy()
       winnerRewardAmount = 2 * 10 ** 18
       await token.transfer(challenge.address, winnerRewardAmount)
     })
@@ -179,7 +205,7 @@ contract('FutarchyChallenge', (accounts) => {
       token = await Token.new(1000 * 10 ** 18, "FCR Token", 18, 'FCR')
       winnerRewardAmount = 2 * 10 ** 18
       challenge = await deployChallenge({token})
-      await challenge.start()
+      await challenge.initiateFutarchy()
     })
 
     it('reverts if called more than once', async () => {
