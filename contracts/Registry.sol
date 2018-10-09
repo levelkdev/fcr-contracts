@@ -193,6 +193,9 @@ contract Registry {
         challenges[challengeNonce].listingHash = _listingHash;
         listing.challengeID = challengeNonce;
 
+        require(token.transferFrom(msg.sender, this, minDeposit));
+        require(token.transfer(challengeAddress, minDeposit));
+
         emit _Challenge(_listingHash, challengeNonce, challengeAddress, _data, msg.sender);
 
         return challengeNonce;
