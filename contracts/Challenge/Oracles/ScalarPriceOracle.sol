@@ -13,6 +13,7 @@ contract ScalarPriceOracle is Oracle {
   address public token;
   address public comparatorToken;
   IDutchExchange public dutchExchange;
+  uint public NUM_PRICE_POINTS = 5;
 
   function ScalarPriceOracle(
     uint _resolutionDate,
@@ -62,18 +63,20 @@ contract ScalarPriceOracle is Oracle {
 
   function calculateAveragePrice() private returns(int avgPrice) {
     uint currentAuctionIndex = dutchExchange.getAuctionIndex(token, comparatorToken);
+    require(currentAuctionIndex > NUM_PRICE_POINTS, "Not enough historical price data for token pair");
+
     uint firstReferencedIndex = currentAuctionIndex - NUM_PRICE_POINTS;
-    uint NUM_PRICE_POINTS = 5;
 
     uint i = 0;
     uint num;
     uint den;
-    uint sumPrice;
+    uint avgPriceUint;
     while(i < NUM_PRICE_POINTS) {
       (num, den) = dutchExchange.getPriceInPastAuction(token, comparatorToken, firstReferencedIndex + i);
-      sumPrice += (num * 10**18)/(den);
+
+      avgPriceUint += (num * 10**18)/den;
       i++;
     }
-    avgPrice = int(sumPrice)/int(NUM_PRICE_POINTS);
+    avgPrice = int(avgPriceUint/NUM_PRICE_POINTS);
   }
 }
