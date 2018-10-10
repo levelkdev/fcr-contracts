@@ -219,6 +219,10 @@ module.exports = async (artifacts, web3) => {
   console.log('')
   await challenge.finalize(publicSenderAddress)
 
+  console.log(`exit listing and redeem stake for applicant:<${applicantAddress}>`)
+  console.log('')
+  await fcr.registry.exit(applicantAddress, listingTitle)
+
   async function getAllBalances () {
     const allBalances = await getFcrBalances({
       Token,
