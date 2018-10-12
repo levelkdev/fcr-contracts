@@ -60,14 +60,6 @@ Interface for a challenge instance. Implemented by FutarchyChallenge and used by
 
 Interface for a challenge factory instance. Implemented by FutarchyChallengeFactory and used by Registry.
 
-### Challenge/Oracles/CentralizedTimedOracle.sol
-
-Allows an owner to resolve the outcome after a period of time has elapsed.
-
-### Challenge/Oracles/CentralizedTimedOracleFactory.sol
-
-Factory contract for creation of CentralizedTimedOracle instances.
-
 ### Challenge/Oracles/DutchExchangeMock.sol
 
 Mock contract for testing with DutchX.
