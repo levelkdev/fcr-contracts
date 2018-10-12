@@ -392,7 +392,7 @@ contract Parameterizer {
     @param _name the name of the param to be set
     @param _value the value to set the param to be set
     */
-    function set(string _name, uint _value) private {
+    function set(string _name, uint _value) internal {
         params[keccak256(_name)] = _value;
     }
 }

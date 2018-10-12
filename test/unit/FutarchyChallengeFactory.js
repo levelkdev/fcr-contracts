@@ -110,8 +110,6 @@ contract('FutarchyChallengeFactory', (accounts) => {
   })
 
   async function deployChallengeFactory(customParams = {}) {
-
-
     const {
       comparatorToken          = COMPARATOR_TOKEN.address,
       stakeAmount              = STAKE_AMOUNT,
