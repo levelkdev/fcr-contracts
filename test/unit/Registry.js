@@ -7,7 +7,7 @@ const config = JSON.parse(fs.readFileSync('./conf/config.json'));
 const params = config.paramDefaults;
 
 const Registry = artifacts.require('RegistryInternalFunctionsMock')
-// const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactoryMock')
+const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactoryMock')
 const FutarchyChallenge = artifacts.require('FutarchyChallengeMock')
 const Parameterizer = artifacts.require('ParameterizerMock')
 const Token = artifacts.require('EIP20')
