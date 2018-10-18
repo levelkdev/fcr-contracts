@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import "./FutarchyChallengeMock.sol";
 
-contract FutarchyCHallengeFactoryMock {
+contract FutarchyChallengeFactoryMock {
 
     function createChallenge(
       address registry,

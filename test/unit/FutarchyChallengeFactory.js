@@ -1,13 +1,13 @@
 import lkTestHelpers from 'lk-test-helpers'
 const { expectRevert, expectEvent } = lkTestHelpers(web3)
 
-const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory.sol')
-const FutarchyChallenge = artifacts.require('FutarchyChallenge.sol')
-const FutarchyOracleMock = artifacts.require('FutarchyOracleMock.sol')
-const RegistryMock = artifacts.require('RegistryMock.sol')
+const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory')
+const FutarchyChallenge = artifacts.require('FutarchyChallenge')
+const FutarchyOracleMock = artifacts.require('FutarchyOracleMock')
+const RegistryMock = artifacts.require('RegistryMock')
 const ScalarPriceOracleFactoryMock = artifacts.require('ScalarPriceOracleFactoryMock')
 const DutchExchangeMock = artifacts.require('DutchExchangeMock')
-const Token = artifacts.require('EIP20.sol')
+const Token = artifacts.require('EIP20')
 const BigNumber = require('bignumber.js');
 
 const mockAddresses = [

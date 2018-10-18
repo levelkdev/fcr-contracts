@@ -2,7 +2,7 @@ pragma solidity^0.4.24;
 
 import "plcr-revival/contracts/PLCRVoting.sol";
 import "tokens/eip20/EIP20Interface.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-zos/contracts/math/SafeMath.sol";
 
 contract Parameterizer {
 
@@ -247,7 +247,7 @@ contract Parameterizer {
         require(challenges[_challengeID].tokenClaims[msg.sender] == false);
         require(challenges[_challengeID].resolved == true);
 
-        uint voterTokens = voting.getNumPassingTokens(msg.sender, _challengeID, _salt);
+        uint voterTokens = voting.getNumPassingTokens(msg.sender, _challengeID);
         uint reward = voterReward(msg.sender, _challengeID, _salt);
 
         // subtract voter's information to preserve the participation ratios of other voters
@@ -293,7 +293,7 @@ contract Parameterizer {
     public view returns (uint) {
         uint winningTokens = challenges[_challengeID].winningTokens;
         uint rewardPool = challenges[_challengeID].rewardPool;
-        uint voterTokens = voting.getNumPassingTokens(_voter, _challengeID, _salt);
+        uint voterTokens = voting.getNumPassingTokens(_voter, _challengeID);
         return (voterTokens * rewardPool) / winningTokens;
     }
 

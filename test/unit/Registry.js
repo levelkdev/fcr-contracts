@@ -6,11 +6,11 @@ const moment = require('moment')
 const config = JSON.parse(fs.readFileSync('./conf/config.json'));
 const params = config.paramDefaults;
 
-const Registry = artifacts.require('RegistryInternalFunctionsMock.sol')
-const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactoryMock.sol')
-const FutarchyChallenge = artifacts.require('FutarchyChallengeMock.sol')
-const Parameterizer = artifacts.require('ParameterizerMock.sol')
-const Token = artifacts.require('EIP20.sol')
+const Registry = artifacts.require('RegistryInternalFunctionsMock')
+// const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactoryMock')
+const FutarchyChallenge = artifacts.require('FutarchyChallengeMock')
+const Parameterizer = artifacts.require('ParameterizerMock')
+const Token = artifacts.require('EIP20')
 
 const mockAddresses = [
   '0x4e0100882b427b3be1191c5a7c7e79171b8a24dd',

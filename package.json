@@ -53,10 +53,10 @@
     "moment": "^2.22.0",
     "numeral": "^2.0.6",
     "openzeppelin-solidity": "github:gnosis/openzeppelin-solidity#fix-signed-safemath",
-    "plcr-revival": "git://git@github.com:levelkdev/PLCRVoting#b48aeab3ea3411997280dceca05d6d452891b818",
+    "plcr-revival": "github:levelkdev/PLCRVoting#81a2590a9aec25122b8e8eb61c252cf5348553c0",
     "rimraf": "^2.6.2",
     "solc": "^0.4.24",
-    "truffle": "4.1.11",
+    "truffle": "^4.1.14",
     "truffle-flattener": "^1.2.8",
     "truffle-hdwallet-provider": "0.0.3",
     "web3": "^1.0.0-beta.26"

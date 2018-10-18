@@ -31,7 +31,7 @@ contract ParameterizerFactory {
         EIP20 _token,
         uint[] _parameters
     ) public returns (Parameterizer) {
-        PLCRVoting plcr = plcrFactory.newPLCRBYOToken(_token);
+        PLCRVoting plcr = plcrFactory.newPLCRBYOToken(ERC20Token(_token));
         Parameterizer parameterizer = Parameterizer(proxyFactory.createProxy(canonizedParameterizer, ""));
 
         parameterizer.init(
