@@ -25,7 +25,7 @@ module.exports = async (artifacts, web3) => {
   const { increaseTime } = lkTestHelpers(web3)
   const { accounts } = web3.eth
 
-  const Registry = artifacts.require('Registry.sol')
+  const Registry = artifacts.require('Registry')
   const OutcomeToken = artifacts.require('OutcomeToken')
 
   const FutarchyChallengeFactory = artifacts.require('FutarchyChallengeFactory')
@@ -34,7 +34,7 @@ module.exports = async (artifacts, web3) => {
   const RegistryFactory = artifacts.require('RegistryFactory')
   const registryFactory = await RegistryFactory.deployed()
 
-  const Token = artifacts.require('EIP20.sol')
+  const Token = artifacts.require('EIP20')
   const fcrToken = await Token.deployed()
 
   const EtherToken = artifacts.require('EtherToken')

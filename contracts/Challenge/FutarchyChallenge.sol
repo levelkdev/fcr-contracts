@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
-import '@gnosis.pm/gnosis-core-contracts/contracts/Oracles/FutarchyOracleFactory.sol';
-import '@gnosis.pm/gnosis-core-contracts/contracts/MarketMakers/LMSRMarketMaker.sol';
+import {FutarchyOracle, FutarchyOracleFactory, ERC20 as AltERC20} from '@gnosis.pm/gnosis-core-contracts/contracts/Oracles/FutarchyOracleFactory.sol';
+import {LMSRMarketMaker} from '@gnosis.pm/gnosis-core-contracts/contracts/MarketMakers/LMSRMarketMaker.sol';
 import '../Registry.sol';
 import "./Oracles/ScalarPriceOracle.sol";
 import "./ChallengeInterface.sol";
@@ -81,7 +81,7 @@ contract FutarchyChallenge is ChallengeInterface {
     uint _startDate = now;
 
     futarchyOracle = futarchyOracleFactory.createFutarchyOracle(
-      registry.token(),
+      AltERC20(registry.token()),
       scalarPriceOracle,
       2,
       lowerBound,

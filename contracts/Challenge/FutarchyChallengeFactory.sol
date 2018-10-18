@@ -1,5 +1,5 @@
 pragma solidity ^0.4.24;
-import '@gnosis.pm/gnosis-core-contracts/contracts/Oracles/FutarchyOracleFactory.sol';
+import {FutarchyOracleFactory} from '@gnosis.pm/gnosis-core-contracts/contracts/Oracles/FutarchyOracleFactory.sol';
 import './Oracles/ScalarPriceOracleFactory.sol';
 import "./ChallengeFactoryInterface.sol";
 import "./FutarchyChallenge.sol";
